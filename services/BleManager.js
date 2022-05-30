@@ -2,8 +2,6 @@
 var React = require("react-native");
 var bleManager = React.NativeModules.BleManager;
 
-console.log('what is ble manager? -> ', bleManager);
-
 class BleManager {
   constructor() {
     this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
@@ -230,7 +228,26 @@ class BleManager {
     bleManager.checkState();
   }
 
-  start(options) {
+  async start(options) {
+    return new Promise((fulfill, reject) => {
+      if (options == null) {
+        options = {};
+      }
+      if(!bleManager){
+          reject('ble manager is null.');
+      }
+
+        bleManager.start(options, error => {
+        if (error) {
+          reject(error);
+        } else {
+          fulfill();
+        }
+      });
+    });
+  }
+
+  startAsync(options) {
     return new Promise((fulfill, reject) => {
       if (options == null) {
         options = {};
@@ -249,6 +266,8 @@ class BleManager {
       });
     });
   }
+
+
 
   scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions = {}) {
     return new Promise((fulfill, reject) => {
