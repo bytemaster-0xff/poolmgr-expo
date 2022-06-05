@@ -33,7 +33,10 @@ export default function ScanPage({ navigation }) {
         ble.emitter.removeAllListeners('connected');
         ble.emitter.removeAllListeners('scanning');
         ble.emitter.addListener('connected', (device) => refresh(device))
-        ble.emitter.addListener('scanning', (isScanning) => setIsScanning(isScanning))
+        ble.emitter.addListener('scanning', (isScanning) => {
+         setIsScanning(isScanning);
+         console.log('setting scanning' + isScanning);
+        });
 
         if (Platform.OS === 'android' && Platform.Version >= 23) {
             PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
