@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, PermissionsAndroid, View, TextInput, TouchableOpacity} from 'react-native';
+import { NavigationContainer } from "@react-navigation/native";
 
-export default function Auth() {
+export default function Auth({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -11,6 +12,8 @@ export default function Auth() {
     const login = (email: string, password: string) => {
         console.log('login called.');
         console.log(email, password);
+        console.log(navigation);
+        navigation.navigate('scanPage');
     }
 
     return (

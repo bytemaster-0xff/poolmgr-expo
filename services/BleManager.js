@@ -2,9 +2,12 @@
 var React = require("react-native");
 var bleManager = React.NativeModules.BleManager;
 
+console.log('creating ble manager other class.');
+
 class BleManager {
   constructor() {
     this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
+    console.log('in its constructor.');
   }
 
   read(peripheralId, serviceUUID, characteristicUUID) {
