@@ -1,5 +1,6 @@
 import { Platform, EmitterSubscription, NativeEventEmitter, NativeModules } from "react-native";
 import { Peripheral } from 'react-native-ble-manager';
+import { AsyncStorageStatic } from "react-native";
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 import BleManager from './services/BleManager'
@@ -27,6 +28,8 @@ export const CHAR_UUID_STATE = "d804b639-6ce7-5e81-9f8a-ce0f699085eb"
  * xxx => OTA Param
  */
 
+export const SYS_STATE_DEFAULT = "BLE - GATT Example,1.0.0,*,0,0,0,0,0,0,0,0";
+
 export const CHAR_UUID_SYS_CONFIG = "d804b639-6ce7-5e82-9f8a-ce0f699085eb"
 /* 
   * Sys Config characteristic
@@ -42,6 +45,9 @@ export const CHAR_UUID_SYS_CONFIG = "d804b639-6ce7-5e82-9f8a-ce0f699085eb"
   * (0/1) GPS Enable
   * xxxx GPS Rate (sec),
   */
+
+export const SYS_CONFIG_DEFAULT = "?,MISC,,0,0,,,120,120,1,5";
+
 
 export const CHAR_UUID_IOCONFIG = "d804b639-6ce7-5e83-9f8a-ce0f699085eb"
 /* IO Config
@@ -96,7 +102,7 @@ export const CHAR_UUID_RELAY = "d804b639-6ce7-5e87-9f87-ce0f699085eb"
    */
 
 const CHAR_UUID_CONSOLE = "d804b639-6ce7-5e88-9f88-ce0f699085eb"
-/* RELAY Config
+/* Console Messages
    * 
    * 16 slots
    * (1,0) <= => Relay State
@@ -158,8 +164,8 @@ export class NuvIoTBLE {
   }
 
   simulatedBLE(): boolean {
-    // return Platform.OS === 'web'
-    return true;
+    return Platform.OS === 'web'
+    // return true;
   }
 
   async startScan() {
@@ -178,178 +184,198 @@ export class NuvIoTBLE {
         console.log('added - ' + peripheral.name);
         ble.emitter.emit('connected', peripheral);
       }
-      , 1000)
+        , 1000)
 
-    window.setTimeout(() => {
-      this.setIsScanning(false);
-      window.clearInterval(timer);
-    }, 5000);
-  }
-    else {
-  if (this.isScanning) {
-    BleManager.checkState();
-    console.log('Going to start scanning in service');
-    BleManager.scan([], 5, false)
-      .then((res) => {
-        this.setIsScanning(true);
-
-      })
-      .catch((err) => {
-        console.log('error');
-        console.log(err);
-      });
-  }
-}
-  }
-
-handleUpdateValueForCharacteristic(data: any) {
-  console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
-}
-
-handleStopScan(ble: NuvIoTBLE) {
-  if (ble == null) {
-    console.log('stop can ble is null');
-    return;
-  }
-
-  ble.setIsScanning(false);
-}
-
-handleDisconnectedPeripheral(ble: NuvIoTBLE, data: any) {
-  let peripheral = this.peripherals.find(prf => prf.id === data.peripheral.id);
-  if (peripheral) {
-    //peripheral.connected = false;
-    //peripherals.set(peripheral.id, peripheral);
-    //setList(Array.from(peripherals.values()));
-  }
-  console.log('Disconnected from ' + data.peripheral);
-}
-
-  async connect(peripheral: Peripheral) {
-  if (this.simulatedBLE()) {
-
-  }
-  else {
-    let result = await BleManager.isPeripheralConnected(peripheral.id)
-    console.log('Connect Click ' + peripheral.id);
-    if (result) {
-      console.log('already connected.');
+      window.setTimeout(() => {
+        this.setIsScanning(false);
+        window.clearInterval(timer);
+      }, 5000);
     }
     else {
-      console.log('Attempt to connect ' + peripheral.id);
+      if (!this.isScanning) {
+        BleManager.checkState();
+        console.log('Going to start scanning in service');
+        BleManager.scan([], 5, false)
+          .then((res) => {
+            this.setIsScanning(true);
+
+          })
+          .catch((err) => {
+            console.log('error');
+            console.log(err);
+          });
+      }
+    }
+  }
+
+  handleUpdateValueForCharacteristic(data: any) {
+    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
+  }
+
+  handleStopScan(ble: NuvIoTBLE) {
+    if (ble == null) {
+      console.log('stop can ble is null');
+      return;
+    }
+
+    ble.setIsScanning(false);
+  }
+
+  handleDisconnectedPeripheral(ble: NuvIoTBLE, data: any) {
+    let peripheral = this.peripherals.find(prf => prf.id === data.peripheral.id);
+    if (peripheral) {
+      //peripheral.connected = false;
+      //peripherals.set(peripheral.id, peripheral);
+      //setList(Array.from(peripherals.values()));
+    }
+    console.log('Disconnected from ' + data.peripheral);
+  }
+
+  async connect(peripheral: Peripheral) {
+    if (this.simulatedBLE()) {
+
+    }
+    else {
+      let result = await BleManager.isPeripheralConnected(peripheral.id)
+      console.log('Connect Click ' + peripheral.id);
+      if (result) {
+        console.log('already connected.');
+      }
+      else {
+        console.log('Attempt to connect ' + peripheral.id);
+        try {
+          await BleManager.connect(peripheral.id)
+          console.log('connected');
+        }
+        catch (e) {
+          console.log(e);
+        }
+      }
+    }
+  }
+
+  bin2String(array: []) {
+    var result = "";
+    for (const char of array) {
+      result += String.fromCharCode(char);
+    }
+    return result;
+  }
+
+  async getServices(id: string): Promise<boolean> {
+    try {
+      await this.connectById(id);
+      return true;
+    }
+    catch (e) {
+      return false;
+    }
+  }
+
+  string2Bin(str: string) :   number[] {
+    const bytes = [];
+    for (let ii = 0; ii < str.length; ii++) {
+      const code = str.charCodeAt(ii); // x00-xFFFF
+        bytes.push(code & 255); // low, high
+    }
+    return bytes;
+  }
+
+  async getCharacteristic(id: string, serviceId: string, characteristicId: string): Promise<string | null> {
+    if (this.simulatedBLE()) {
+      return "";
+    }
+    else {
+      console.log('response from device.', id, serviceId, characteristicId);
       try {
-        await BleManager.connect(peripheral.id)
-        console.log('connected');
+        let result = await BleManager.read(id, serviceId, characteristicId);
+        console.log('response from device.');
+        return this.bin2String(result);
       }
       catch (e) {
         console.log(e);
+        return null;
       }
     }
   }
-}
 
-bin2String(array: []) {
-  var result = "";
-  for (const char of array) {
-    result += String.fromCharCode(char);
-  }
-  return result;
-}
-
-  async getServices(id: string): Promise < boolean > {
-  try {
-    await this.connectById(id);
-    return true;
-  }
-    catch(e) {
-    return false;
-  }
-}
-
-  async getCharacteristic(id: string, serviceId: string, characteristicId: string): Promise < string | null > {
-  if(this.simulatedBLE()) {
-  return "";
-}
-    else {
-  console.log('response from device.', id, serviceId, characteristicId);
-  try {
-    let result = await BleManager.read(id, serviceId, characteristicId);
-    console.log('response from device.');
-    return this.bin2String(result);
-  }
-  catch (e) {
-    console.log(e);
-    return null;
-  }
-}
+  async writeCharacteristic(id: string, serviceId: string, characteristicId: string, value: string) {
+      await this.connectById(id);
+      let buffer = this.string2Bin(value);
+      let result = await BleManager.write(id, serviceId, characteristicId, buffer, 255);
+      await this.disconnectById(id);
+      console.log(buffer);
+      console.log(value);
+      console.log(result);
+      return result;
   }
 
-  async connectById(id: string): Promise < boolean > {
-  if(this.simulatedBLE()) {
-  return true;
-}
-    else {
-  let result = await BleManager.isPeripheralConnected(id)
-  if (result) {
-    console.log('already connected.');
-    return true;
-  }
-  else {
-    console.log('Attempt to connect ' + id);
-    try {
-      await BleManager.connect(id);
-      await BleManager.retrieveServices(id);
-      console.log('connected');
+  async connectById(id: string): Promise<boolean> {
+    if (this.simulatedBLE()) {
       return true;
     }
-    catch (e) {
-      console.log(e);
-      return false;
+    else {
+      let result = await BleManager.isPeripheralConnected(id)
+      if (result) {
+        console.log('already connected.');
+        return true;
+      }
+      else {
+        console.log('Attempt to connect ' + id);
+        try {
+          await BleManager.connect(id);
+          await BleManager.retrieveServices(id);
+          console.log('connected');
+          return true;
+        }
+        catch (e) {
+          console.log(e);
+          return false;
+        }
+      }
     }
   }
-}
-  }
 
-  async disconnectById(id: string): Promise < boolean > {
-  if(this.simulatedBLE()) {
-  return true;
-}
-    else {
-  let result = await BleManager.isPeripheralConnected(id)
-  if (!result) {
-    console.log('device is not connected.');
-    return true;
-  }
-  else {
-    console.log('Attempt to connect ' + id);
-    try {
-      await BleManager.disconnect(id, true);
-      console.log('disconnected');
+  async disconnectById(id: string): Promise<boolean> {
+    if (this.simulatedBLE()) {
       return true;
     }
-    catch (e) {
-      console.log('could not disconnect');
-      console.log(e);
-      return false;
+    else {
+      let result = await BleManager.isPeripheralConnected(id)
+      if (!result) {
+        console.log('device is not connected.');
+        return true;
+      }
+      else {
+        console.log('Attempt to connect ' + id);
+        try {
+          await BleManager.disconnect(id, true);
+          console.log('disconnected');
+          return true;
+        }
+        catch (e) {
+          console.log('could not disconnect');
+          console.log(e);
+          return false;
+        }
+      }
     }
   }
-}
-  }
 
-handleDiscoverPeripheral(ble: NuvIoTBLE, peripheral: Peripheral) {
-  if (ble == null) {
-    console.log('discover ble is null');
-    return;
-  }
+  handleDiscoverPeripheral(ble: NuvIoTBLE, peripheral: Peripheral) {
+    if (ble == null) {
+      console.log('discover ble is null');
+      return;
+    }
 
-  if (peripheral.name) {
-    if (!this.peripherals.find(flt => flt.id === (peripheral.id))) {
-      ble.peripherals.push(peripheral);
-      console.log('added');
-      ble.emitter.emit('connected', peripheral);
+    if (peripheral.name) {
+      if (!this.peripherals.find(flt => flt.id === (peripheral.id))) {
+        ble.peripherals.push(peripheral);
+        console.log('added');
+        ble.emitter.emit('connected', peripheral);
+      }
     }
   }
-}
 }
 
 export let ble = new NuvIoTBLE();
