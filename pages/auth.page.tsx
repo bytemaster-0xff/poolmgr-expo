@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
+import styles from '../styles';
 import { StyleSheet, Text, PermissionsAndroid, View, TextInput, TouchableOpacity} from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
 
@@ -13,7 +14,7 @@ export default function Auth({ navigation }) {
         console.log('login called.');
         console.log(email, password);
         console.log(navigation);
-        navigation.navigate('scanPage');
+        navigation.replace('scanPage');
     }
 
     return (
@@ -32,35 +33,3 @@ export default function Auth({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: 'blue',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-    },
-    listRow: {
-        flexDirection: 'row'
-    },
-    formGroup: {
-        margin: 20
-    },
-    inputStyle: {
-        backgroundColor: 'white',
-        width: 300
-    },
-    label: {
-        color: 'white'
-    },
-    submitButton: {
-        backgroundColor: "green",
-        padding: 11,
-        margin: 16,
-        height: 42,
-        width: 120,
-        alignItems: 'center'
-    },
-    submitButtonText: {
-        color: "white"
-    }
-});

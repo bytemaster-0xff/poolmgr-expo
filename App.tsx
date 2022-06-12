@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Auth from './pages/auth.page';
 import ScanPage from './pages/scan.page';
 import { BlePropertiesPage } from './pages/bleproperties.page';
+import { Button } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -12,7 +13,7 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="authPage" component={Auth} options={{ title: 'Welcome' }}/>
-        <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Device Scan Page' }}/>
+        <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Device Scan Page'}}/>
         <Stack.Screen name="blePropertiesPage" component={BlePropertiesPage} options={{ title: 'Device Properties Page' }}/>
       </Stack.Navigator>
     </NavigationContainer>

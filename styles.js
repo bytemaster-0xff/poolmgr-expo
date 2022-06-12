@@ -9,6 +9,7 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
     },
     listRow: {
+      flex:1,
       flexDirection:'row'
     },
     formGroup: {
@@ -25,6 +26,7 @@ const styles = StyleSheet.create({
     submitButton: {
       backgroundColor: "green",
       padding: 11,
+      borderRadius:10,
       margin: 16,
       height: 42,
       width: 120,
@@ -32,7 +34,60 @@ const styles = StyleSheet.create({
     },
     submitButtonText: {
       color: "white"
-    }
+    },
+    btnCircle: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'white',
+      shadowColor: "#000",
+      shadowOffset: {
+      width: 0,
+      height: 1,
+      },
+      shadowOpacity: 0.20,
+      shadowRadius: 1.41,
+      elevation: 1,
+      bottom: 28
+  },
+  btnCircleUp: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#E8E8E8',
+      bottom: 18,
+      shadowColor: "#000",
+      shadowOffset: {
+      width: 0,
+      height: 1,
+      },
+      shadowOpacity: 0.20,
+      shadowRadius: 1.41,
+      elevation: 1,
+  },
+  imgCircle: {
+      width: 30,
+      height: 30,
+      tintColor: '#48CEF6'
+  },
+  img: {
+      width: 30,
+      height: 30,
+  },
+  loadingIndicator: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
+
   });
 
 export default styles;

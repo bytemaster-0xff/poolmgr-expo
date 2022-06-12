@@ -164,8 +164,8 @@ export class NuvIoTBLE {
   }
 
   simulatedBLE(): boolean {
-    return Platform.OS === 'web'
-    // return true;
+    //return Platform.OS === 'web'
+     return true;
   }
 
   async startScan() {
