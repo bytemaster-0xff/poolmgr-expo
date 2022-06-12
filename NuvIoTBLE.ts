@@ -286,28 +286,30 @@ export class NuvIoTBLE {
       return "";
     }
     else {
-      console.log('response from device.', id, serviceId, characteristicId);
+      console.log('request characteristic from device.', id, serviceId, characteristicId);
       try {
         let result = await BleManager.read(id, serviceId, characteristicId);
-        console.log('response from device.');
-        return this.bin2String(result);
+        let responseStr = this.bin2String(result);
+        console.log('got response from device=> ' + responseStr);
+        return responseStr
       }
       catch (e) {
-        console.log(e);
+        console.log('ERROR GET response', e);
         return null;
       }
     }
   }
 
   async writeCharacteristic(id: string, serviceId: string, characteristicId: string, value: string) {
-      await this.connectById(id);
+    try
+    {
       let buffer = this.string2Bin(value);
       let result = await BleManager.write(id, serviceId, characteristicId, buffer, 255);
-      await this.disconnectById(id);
-      console.log(buffer);
-      console.log(value);
       console.log(result);
-      return result;
+    }
+    catch(e) {
+      console.log('exception: ', e);
+    }
   }
 
   async connectById(id: string): Promise<boolean> {

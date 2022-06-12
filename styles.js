@@ -16,7 +16,8 @@ const styles = StyleSheet.create({
     },
     inputStyle: {
       backgroundColor: 'white',
-      width: 300
+      width: 300,
+      height:24,
     },
     label: {
       color: 'white'
