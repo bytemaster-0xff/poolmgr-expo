@@ -308,7 +308,7 @@ export class NuvIoTBLE {
     {
       let buffer = this.string2Bin(value);
       let result = await BleManager.write(id, serviceId, characteristicId, buffer, 255);
-      console.log(result);
+      console.log('WRITE RESULT: ' + result);
     }
     catch(e) {
       console.log('exception: ', e);

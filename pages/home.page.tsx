@@ -60,7 +60,7 @@ export default function ScanPage({ navigation }) {
     const clear = async () => {
         setIsScanning(false);
         ble.peripherals = [];
-        setDevices([]);
+        setDevices(devices => []);
         console.log('cleared...');
         console.log('new device count' + devices.length);
     }

@@ -58,13 +58,24 @@ export const BlePropertiesPage = ({ props, navigation, route }) => {
     const writeChar = async () => {
         if (await ble.connectById(deviceAddress!)) {
             await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioview=adc1');
+            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioconfig=adc1,Main Temperature,2,5.5,2.8,3.5');
             let result1 = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
             console.log('ioconfig => ' + result1);
 
             await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioview=adc2');
+            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioconfig=adc2,Secondary Temperature, 3, 5.5, 2.1,3.7');
             let result2 = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
             console.log('ioconfig => ' + result2);
         }
+    }
+
+    const readConfig = async () => {
+        if (await ble.connectById(deviceAddress!)) {
+            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioview=adc1');
+            let str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
+            console.log(str);
+        }
+
     }
 
     const getData = async () => {
@@ -112,8 +123,8 @@ export const BlePropertiesPage = ({ props, navigation, route }) => {
             <Text style={styles.label}>Port Name:</Text>
             <TextInput style={styles.inputStyle} placeholder="enter name for port" onChangeText={e => setPortName(e)}/> 
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => getData()}>
-                <Text style={styles.submitButtonText}> Submit </Text>
+            <TouchableOpacity style={styles.submitButton} onPress={() => readConfig()}>
+                <Text style={styles.submitButtonText}> Read </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.submitButton} onPress={() => writeChar()}>
