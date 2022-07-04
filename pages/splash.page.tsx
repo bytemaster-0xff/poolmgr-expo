@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect } from "react";
+import React, {  useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
 import styles from '../styles';
-import { StyleSheet, Text, PermissionsAndroid, View, TextInput, TouchableOpacity } from 'react-native';
-import { NavigationContainer } from "@react-navigation/native";
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
@@ -14,7 +13,7 @@ export default function SplashPage({ navigation }) {
     }
 
     const checkStartup = async () => {
-
+        console.log('startup');
         if((await AsyncStorage.getItem("isLoggedIn")) == "true"){
             navigation.replace('homePage')
         }

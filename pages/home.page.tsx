@@ -13,12 +13,9 @@ import { scan } from "../services/BleManager";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ScanPage({ navigation }) {
-    const [type, setType] = useState<'down' | 'up'>('down');
-
     let [currentTab, setCurrentTab] = useState<string>("home");
     let [devices, setDevices] = useState<Peripheral[]>([]);
-    let [isScanning, setIsScanning] = useState<boolean>(false);
-    
+    let [isScanning, setIsScanning] = useState<boolean>(false);    
 
     const tabs = [
         {
@@ -46,7 +43,7 @@ export default function ScanPage({ navigation }) {
 
     const startScan = async () => { 
         await ble.startScan();
-        currentTab = 'list';
+        setCurrentTab('list');
     }
 
     const connect = async (peripheral: Peripheral) => {
@@ -66,16 +63,6 @@ export default function ScanPage({ navigation }) {
         setDevices([]);
         console.log('cleared...');
         console.log('new device count' + devices.length);
-    }
-
-    const onClickButton = () => {
-        if (type === 'up') {
-            setType('down');
-            alert('Change type curve down');
-        } else {
-            setType('up');
-            alert('Change type curve up');
-        }
     }
 
     const loadJWT = async () => {

@@ -116,9 +116,11 @@ export class NuvIoTBLE {
 
   constructor() {
     this.emitter = new NativeEventEmitter();
-    console.log(Platform.OS);
+    console.log("BLE Startup - Constructor");
+    console.log("OS " + Platform.OS);
+
     if (Platform.OS !== 'web') {
-      BleManager.start({ showAlert: false })
+      BleManager.start({ showAlert: true })
         .then(() => {
           console.log('start was successfully called');
         })
@@ -164,8 +166,8 @@ export class NuvIoTBLE {
   }
 
   simulatedBLE(): boolean {
-    //return Platform.OS === 'web'
-     return true;
+    return Platform.OS === 'web'
+    // return true;
   }
 
   async startScan() {
@@ -194,9 +196,10 @@ export class NuvIoTBLE {
     else {
       if (!this.isScanning) {
         BleManager.checkState();
-        console.log('Going to start scanning in service');
+        console.log('We are starting to scan');
         BleManager.scan([], 5, false)
           .then((res) => {
+            console.log('scanning started.');
             this.setIsScanning(true);
 
           })
@@ -369,6 +372,8 @@ export class NuvIoTBLE {
       console.log('discover ble is null');
       return;
     }
+
+    console.log('device was discovered');
 
     if (peripheral.name) {
       if (!this.peripherals.find(flt => flt.id === (peripheral.id))) {

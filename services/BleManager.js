@@ -2,12 +2,10 @@
 var React = require("react-native");
 var bleManager = React.NativeModules.BleManager;
 
-console.log('creating ble manager other class.');
-
 class BleManager {
   constructor() {
     this.isPeripheralConnected = this.isPeripheralConnected.bind(this);
-    console.log('in its constructor.');
+    console.log('BLE Manager - In Constructor creating - ' + bleManager == null);
   }
 
   read(peripheralId, serviceUUID, characteristicUUID) {
@@ -236,9 +234,12 @@ class BleManager {
       if (options == null) {
         options = {};
       }
+
       if(!bleManager){
-          reject('ble manager is null.');
+          reject('ble manager is null, can not continue');
       }
+
+      console.log('ble is available')
 
         bleManager.start(options, error => {
         if (error) {
@@ -295,6 +296,8 @@ class BleManager {
       if (scanningOptions.reportDelay == null) {
         scanningOptions.reportDelay = 0;
       }
+
+      console.log('ble manager scanning');
 
       bleManager.scan(
         serviceUUIDs,
