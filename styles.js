@@ -4,37 +4,44 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: 'blue',
+      padding:20,
       alignItems: 'flex-start',
       justifyContent: 'center',
     },
+
     listRow: {
-      flex:1,
       flexDirection:'row'
     },
+
     formGroup: {
       margin: 20
     },
+
     inputStyle: {
       backgroundColor: 'white',
       width: 300,
-      height:24,
+      height:30,
+      marginBottom:10
     },
+
     label: {
-      color: 'white'
+      color: 'black'
     },
+    
     submitButton: {
       backgroundColor: "green",
       padding: 11,
       borderRadius:10,
-      margin: 16,
+      margin: 0,
       height: 42,
       width: 120,
       alignItems: 'center'
     },
+
     submitButtonText: {
       color: "white"
     },
+
     btnCircle: {
       width: 60,
       height: 60,
@@ -52,6 +59,7 @@ const styles = StyleSheet.create({
       elevation: 1,
       bottom: 28
   },
+
   btnCircleUp: {
       width: 60,
       height: 60,
@@ -69,15 +77,24 @@ const styles = StyleSheet.create({
       shadowRadius: 1.41,
       elevation: 1,
   },
+
   imgCircle: {
       width: 30,
       height: 30,
       tintColor: '#48CEF6'
   },
+
   img: {
       width: 30,
       height: 30,
   },
+
+  item: {
+    padding: 20,
+    marginTop: 5,
+    fontSize: 15,
+  },
+
   loadingIndicator: {
     position: 'absolute',
     left: 0,

@@ -270,8 +270,6 @@ class BleManager {
     });
   }
 
-
-
   scan(serviceUUIDs, seconds, allowDuplicates, scanningOptions = {}) {
     return new Promise((fulfill, reject) => {
       if (allowDuplicates == null) {
