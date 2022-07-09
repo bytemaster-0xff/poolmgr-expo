@@ -3,7 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, PermissionsAndroid, Platform, View, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Button } from 'react-native';
 import { Peripheral } from 'react-native-ble-manager'
 import { ble } from '../NuvIoTBLE'
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import services from '../services/app-services';
+
 
 
 import styles from '../styles';
@@ -15,7 +16,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function ScanPage({ navigation }) {
     let [currentTab, setCurrentTab] = useState<string>("home");
     let [devices, setDevices] = useState<Peripheral[]>([]);
-    let [isScanning, setIsScanning] = useState<boolean>(false);    
+    let [isScanning, setIsScanning] = useState<boolean>(false);
+    let [repos, setRepos] = useState<Devices.DeviceRepoSummary[] | undefined>()
 
     const tabs = [
         {
@@ -41,14 +43,20 @@ export default function ScanPage({ navigation }) {
 
     ];
 
-    const startScan = async () => { 
+    const loadRepos = async () => {
+        console.log('loading repos.');
+        let repos = await services.deviceServices.loadDeviceRepositories();
+        setRepos(repos);
+    }
+
+    const startScan = async () => {
         await ble.startScan();
         setCurrentTab('list');
     }
 
     const connect = async (peripheral: Peripheral) => {
         await ble.connect(peripheral);
-        navigation.navigate('blePropertiesPage', { id: peripheral.id });
+        navigation.navigate('tempSensorsPage', { id: peripheral.id });
         console.log('thats all folks');
     }
 
@@ -72,7 +80,19 @@ export default function ScanPage({ navigation }) {
 
     useEffect(() => {
         console.log('---');
+        console.log('---');
         console.log('-----------------');
+
+        loadRepos();
+
+        
+        navigation.addListener('willFocus', (payload: any)=> {console.log('will focus', payload)});
+        navigation.addListener('didFocus', (payload: any)=> {console.log('did focus', payload)});
+
+        navigation.addListener('willBlur', (payload: any)=> {console.log('will blur', payload)});
+        navigation.addListener('didBlur', (payload: any)=> {console.log('did blur', payload)});
+
+        console.log('setup all subs');
 
         navigation.setOptions({
             headerRight: () => (
@@ -107,9 +127,10 @@ export default function ScanPage({ navigation }) {
             });
         }
 
-        loadJWT();
-
         return (() => {
+            console.log("--------------------------------");
+            console.log("----------------");
+            console.log('unsubscribe called.');
             ble.unsubscribe();
         })
     }, []);
@@ -142,6 +163,23 @@ export default function ScanPage({ navigation }) {
         );
     };
 
+    const reposPage = () => {
+        return (<FlatList
+            contentContainerStyle={{ flex: 1, alignItems: "stretch" }}
+            style={{ backgroundColor: 'white', width: "100%" }}
+            ItemSeparatorComponent={myItemSeparator}
+            ListEmptyComponent={myListEmpty}
+            data={repos}
+            renderItem={({ item }) =>
+                <View style={[styles.listRow, { padding: 10, height: 90, }]} key={item.id}>
+                    <View style={{ flex: 4 }}>
+                        <Text style={[{ color: 'gray', flex: 3 }]}>{item.name}</Text>
+                        <Text style={[{ color: 'gray', flex: 3 }]}>Test</Text>
+                    </View>
+                </View>
+            } />);
+
+    }
 
     const listPage = () => {
         return (<FlatList
@@ -160,7 +198,7 @@ export default function ScanPage({ navigation }) {
                     <TouchableOpacity style={[styles.submitButton, { flex: 3 }]} onPress={() => connect(item)}>
                         <Text style={[styles.submitButtonText, { color: 'white' }]}> CONNECT </Text>
                     </TouchableOpacity>
-                 <TouchableOpacity style={[styles.submitButton, { flex: 3 }]} onPress={() => settings(item)}>
+                    <TouchableOpacity style={[styles.submitButton, { flex: 3 }]} onPress={() => settings(item)}>
                         <Text style={[styles.submitButtonText, { color: 'white' }]}> SETTINGS </Text>
                     </TouchableOpacity>
                 </View>
@@ -185,9 +223,8 @@ export default function ScanPage({ navigation }) {
 
     }
 
-
     const renderTabs = () => {
-        if (currentTab === 'home') return homePage()
+        if (currentTab === 'home') return reposPage()
         if (currentTab === 'list') return listPage()
         if (currentTab === 'notification') return notificationPage()
         if (currentTab === 'profile') return profilePage()

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { setStatusBarStyle, StatusBar } from 'expo-status-bar';
+import {  StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, View, Text, TextInput } from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
 
+import services from '../services/app-services';
 
 import styles from '../styles';
 import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
@@ -14,6 +15,8 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
     let [deviceId, setDeviceId] = useState<string>();
     let [serverUrl, setServerUrl] = useState<string>();
 
+    let [device, setDevice] = useState<Devices.DeviceDetail | undefined>();
+
     let [wifiSSID, setWiFiSSID] = useState<string>();
     let [wifiPWD, setWiFiPWD] = useState<string>();
     let [commissioned, setCommissioned] = useState<boolean>(false);
@@ -22,6 +25,7 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
 
     const getDeviceProperties = async () => {
        refresh();
+
     }
 
     const refresh = async() => {
@@ -48,6 +52,8 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
         else {
             console.log('could not connect.');
         }
+
+        await loadRepos();
     }
 
     const [open, setOpen] = useState(false);
@@ -106,19 +112,31 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
         }
     }
 
-    useEffect(() => {
+    const loadRepos = async () => {
+    
+        let repos = await  services.deviceServices.loadDeviceRepositories();
+    
+        console.log(repos);
+    }
+
+    useEffect( () => {
         if (!initialized) {
             setDeviceAddress(route.params.id);
             console.log('DEVICe ADDR: ', deviceAddress);
             if(deviceAddress) {
                 getDeviceProperties();
             }
-        }
+            loadRepos();
+
+        
+                        }
     });
 
     return (
         <View style={styles.container}>
             <StatusBar style="auto" />
+
+            {device?.deviceId}
 
             <Text style={styles.label}>Device Id:</Text>
             <TextInput style={styles.inputStyle} placeholder="enter device id" value={deviceId} onChangeText={e => setDeviceId(e)} />

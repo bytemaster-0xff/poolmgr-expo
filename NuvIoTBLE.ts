@@ -143,7 +143,10 @@ export class NuvIoTBLE {
     this.subs.push(bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral: Peripheral) => this.handleDiscoverPeripheral(ble, peripheral)));
     this.subs.push(bleManagerEmitter.addListener('BleManagerStopScan', () => this.handleStopScan(ble)));
     this.subs.push(bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', (peripheral: Peripheral) => this.handleDisconnectedPeripheral(ble, peripheral)));
-    this.subs.push(bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', this.handleUpdateValueForCharacteristic));
+    this.subs.push(bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', ({ value, peripheral, characteristic, service }) => {
+      // Convert bytes array to string
+      console.log(`Recieved something for characteristic ${characteristic}`);
+    }));
 
     console.log('subscription added, subscription count => ' + this.subs.length);
   }
@@ -168,6 +171,12 @@ export class NuvIoTBLE {
   simulatedBLE(): boolean {
     return Platform.OS === 'web'
     // return true;
+  }
+
+  async listenForNotifications(deviceId: string, serviceId: string, characteristicId: string) {
+    console.log('Subscribe to characteristic ' + characteristicId);
+    await BleManager.startNotification(deviceId, serviceId, characteristicId);
+    console.log('Subscribed to characteristic ' + characteristicId);
   }
 
   async startScan() {
@@ -212,6 +221,7 @@ export class NuvIoTBLE {
   }
 
   handleUpdateValueForCharacteristic(data: any) {
+    console.log('response');
     console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
   }
 
@@ -289,11 +299,9 @@ export class NuvIoTBLE {
       return "";
     }
     else {
-      console.log('request characteristic from device.', id, serviceId, characteristicId);
       try {
         let result = await BleManager.read(id, serviceId, characteristicId);
         let responseStr = this.bin2String(result);
-        console.log('got response from device=> ' + responseStr);
         return responseStr
       }
       catch (e) {

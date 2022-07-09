@@ -33,7 +33,9 @@
     "react-native-svg-transformer": "^1.0.0",
     "react-native-utils-navigation-bar": "^2.0.4",
     "react-native-vector-icons": "^9.1.0",
-    "react-native-web": "0.17.7"
+    "react-native-web": "0.17.7",
+    "rxjs": "^7.5.5",
+    "node-fetch": "^2.6.1" 
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
