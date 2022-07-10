@@ -54,8 +54,7 @@ export default function ScanPage({ navigation }) {
         setCurrentTab('list');
     }
 
-    const connect = async (peripheral: Peripheral) => {
-        await ble.connect(peripheral);
+    const connect = (peripheral: Peripheral) => {
         navigation.navigate('tempSensorsPage', { id: peripheral.id });
         console.log('thats all folks');
     }
@@ -84,15 +83,6 @@ export default function ScanPage({ navigation }) {
         console.log('-----------------');
 
         loadRepos();
-
-        
-        navigation.addListener('willFocus', (payload: any)=> {console.log('will focus', payload)});
-        navigation.addListener('didFocus', (payload: any)=> {console.log('did focus', payload)});
-
-        navigation.addListener('willBlur', (payload: any)=> {console.log('will blur', payload)});
-        navigation.addListener('didBlur', (payload: any)=> {console.log('did blur', payload)});
-
-        console.log('setup all subs');
 
         navigation.setOptions({
             headerRight: () => (

@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import {  StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, View, Text, TextInput } from "react-native";
+import { StatusBar } from 'expo-status-bar';
+import { View, Text, TextInput , Switch} from "react-native";
 import DropDownPicker from 'react-native-dropdown-picker';
 
 import services from '../services/app-services';
 
 import styles from '../styles';
 import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { SysConfig } from "../models/blemodels/sysconfig";
+import Icon from "react-native-vector-icons/Ionicons";
 
 export const ConnectivityPage = ({ props, navigation, route }) => {
     let [deviceAddress, setDeviceAddress] = useState<string>();
@@ -24,40 +26,8 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
     let [useCellular, setUseCellular] = useState<boolean>(false);
 
     const getDeviceProperties = async () => {
-       refresh();
-
+        getData();
     }
-
-    const refresh = async() => {
-        if (await ble.connectById(deviceAddress!)) {
-            await ble.disconnectById(deviceAddress!);
-
-            await ble.connectById(deviceAddress!)
-            let result2 = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
-            if (result2) {
-                console.log('sysconfig => ' + result2);
-                var parts = result2!.split(',');
-                setDeviceId(parts[0]);
-                setServerUrl(parts[2]);
-                setCommissioned(parts[4] == "1");
-                setUseCellular(parts[5] == "1");
-                setUseWIFi(parts[6] == "1");
-                setWiFiSSID(parts[7]);
-            }
-
-            setInitialized(true);
-
-            await ble.disconnectById(deviceAddress!);
-        }
-        else {
-            console.log('could not connect.');
-        }
-
-        await loadRepos();
-    }
-
-    const [open, setOpen] = useState(false);
-    const [value, setValue] = useState(null);
 
     const writeChar = async () => {
         if (await ble.connectById(deviceAddress!)) {
@@ -65,6 +35,7 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
             if (serverUrl) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `host=${serverUrl}`);
             if (wifiSSID) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${wifiSSID}`);
             if (wifiPWD) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${wifiPWD}`);
+
             await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'wifi=' + (useWiFi ? '1' : '0'));
             await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'cell=' + (useCellular ? '1' : '0'));
 
@@ -79,22 +50,21 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
 
     const getData = async () => {
         if (await ble.connectById(deviceAddress!)) {
+            ble.getServices(deviceAddress!);
             let str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
             console.log('state=> ' + str);
             str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
+          
+            let sysconfig = new SysConfig(str!);
+            setDeviceId(sysconfig.deviceId);
+            setServerUrl(sysconfig.srvrHostName);
+            setCommissioned(sysconfig.commissioned);
+            setUseCellular(sysconfig.cellEnabled);
+            setUseWIFi(sysconfig.wifiEnabled);
+            setWiFiSSID(sysconfig.wifiSSID);
+           
             console.log('sysconfog=> ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
-            console.log('ioconfig => ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_ADC_IOCONFIG);
-            console.log('adcconfig => ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-            console.log('iovaluec => ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_ADC_VALUE);
-            console.log('adcvalueconfig => ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_RELAY);
-            console.log('uuid relay => ' + str);
-
-            console.log('requested data from device');
+          
             await ble.disconnectById(deviceAddress!);
         }
         else {
@@ -109,27 +79,28 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
             if (deviceId) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'commissioned=' + (commissioned ? '1' : '0'));
             let result2 = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
             console.log('sysconfig => ' + result2);
+            ble.disconnectById(deviceAddress!);
         }
     }
 
-    const loadRepos = async () => {
-    
-        let repos = await  services.deviceServices.loadDeviceRepositories();
-    
-        console.log(repos);
-    }
+    useEffect(() => {
 
-    useEffect( () => {
+        navigation.setOptions({
+            headerRight: () => (
+                <View style={{ flexDirection: 'row' }} >
+                    <Icon.Button  backgroundColor="transparent"  underlayColor="transparent" color="navy" onPress={() => writeChar()} name='save' />
+                </View>
+            ),
+        });
+
         if (!initialized) {
             setDeviceAddress(route.params.id);
-            console.log('DEVICe ADDR: ', deviceAddress);
-            if(deviceAddress) {
+            if (deviceAddress) {
                 getDeviceProperties();
             }
-            loadRepos();
 
-        
-                        }
+
+        }
     });
 
     return (
@@ -150,21 +121,15 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
             <Text style={styles.label}>WiFi PWD:</Text>
             <TextInput style={styles.inputStyle} placeholder="enter wifi password" value={wifiPWD} onChangeText={e => setWiFiPWD(e)} />
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => getData()}>
-                <Text style={styles.submitButtonText}> Submit </Text>
-            </TouchableOpacity>
+            <Text style={styles.label}>Commissioned:</Text>
+            <Switch  onValueChange = {e => setCommissioned(e)} value = {commissioned}/>
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => writeChar()}>
-                <Text style={styles.submitButtonText}> Write it </Text>
-            </TouchableOpacity>
+            <Text style={styles.label}>Use WiFi:</Text>
+            <Switch  onValueChange = {e => setUseWIFi(e)} value = {useWiFi}/>
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => commission()}>
-                <Text style={styles.submitButtonText}> COMMISSION </Text>
-            </TouchableOpacity>
+            <Text style={styles.label}>Use Cellular:</Text>
+            <Switch  onValueChange = {e => setUseCellular(e)} value = {useCellular}/>
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => refresh()}>
-                <Text style={styles.submitButtonText}> REFRESH</Text>
-            </TouchableOpacity>
 
         </View>
     );
