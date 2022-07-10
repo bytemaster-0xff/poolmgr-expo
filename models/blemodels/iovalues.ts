@@ -7,10 +7,10 @@ console.log(str);
 
         let parts = str.split(',');
         for(let idx = 0; idx < 8; ++idx){
-            this.adcValues.push(parseFloat(parts[idx]));
+            this.ioValues.push(parseFloat(parts[idx]));
         }
         for(let idx = 8; idx < 16; ++idx){
-            this.ioValues.push(parseFloat(parts[idx]));
+            this.adcValues.push(parseFloat(parts[idx]));
         }
     };
 

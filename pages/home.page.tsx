@@ -56,11 +56,9 @@ export default function ScanPage({ navigation }) {
 
     const connect = (peripheral: Peripheral) => {
         navigation.navigate('tempSensorsPage', { id: peripheral.id });
-        console.log('thats all folks');
     }
 
     const settings = async (peripheral: Peripheral) => {
-        await ble.connect(peripheral);
         navigation.navigate('settingsPage', { id: peripheral.id });
     }
 

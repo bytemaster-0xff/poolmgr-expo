@@ -235,6 +235,13 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('nuviot.keystore')
+            storePassword 'Test1234'
+            keyAlias 'nuviot'
+            keyPassword 'Test1234'
+            
+        }
     }
     buildTypes {
         debug {

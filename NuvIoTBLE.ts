@@ -250,7 +250,7 @@ export class NuvIoTBLE {
     }
     else {
       let result = await BleManager.isPeripheralConnected(peripheral.id)
-      console.log('Connect Click ' + peripheral.id);
+      console.log('Attempt to connect ' + peripheral.id);
       if (result) {
         console.log('already connected.');
       }
@@ -316,7 +316,6 @@ export class NuvIoTBLE {
     {
       let buffer = this.string2Bin(value);
       let result = await BleManager.write(id, serviceId, characteristicId, buffer, 255);
-      console.log('WRITE RESULT: ' + result);
     }
     catch(e) {
       console.log('exception: ', e);

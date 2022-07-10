@@ -6,7 +6,10 @@ const styles = StyleSheet.create({
       flex: 1,
       padding:20,
       alignItems: 'flex-start',
-      justifyContent: 'center',
+    },
+
+    scrollContainer: {
+      padding:20,
     },
 
     listRow: {
@@ -20,12 +23,18 @@ const styles = StyleSheet.create({
     inputStyle: {
       backgroundColor: 'white',
       width: 300,
-      height:30,
-      marginBottom:10
+      height:40,
+      borderColor:"darkgray",
+      borderWidth:1,
+      padding:4,
+      borderRadius:8,
+      marginBottom:10,
+      fontSize:18
     },
 
     label: {
-      color: 'black'
+      color: 'black',
+      fontSize:18,
     },
     
     submitButton: {
