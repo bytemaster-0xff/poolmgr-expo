@@ -336,12 +336,14 @@ export class NuvIoTBLE {
         console.log('Attempt to connect ' + id);
         try {
           await BleManager.connect(id);
+          console.log('getting services');
           await BleManager.retrieveServices(id);
           console.log('connected');
           return true;
         }
         catch (e) {
           console.log(e);
+          console.log('could not connect');
           return false;
         }
       }

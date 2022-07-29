@@ -9,59 +9,63 @@ import styles from '../styles';
 import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { SysConfig } from "../models/blemodels/sysconfig";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useCallback } from "react";
 
 export const ConnectivityPage = ({ props, navigation, route }) => {
-    let [deviceAddress, setDeviceAddress] = useState<string>();
+    console.log('METHOD FUNCTION CALLED.');
 
-    let [deviceId, setDeviceId] = useState<string>();
-    let [serverUrl, setServerUrl] = useState<string>();
-    let [port, setPort] = useState<string>();
+    const peripheralId = route.params.id;
 
-    let [device, setDevice] = useState<Devices.DeviceDetail | undefined>();
+    console.log(route.params.id);
 
-    let [wifiSSID, setWiFiSSID] = useState<string>();
-    let [wifiPWD, setWiFiPWD] = useState<string>();
-    let [commissioned, setCommissioned] = useState<boolean>(false);
-    let [useWiFi, setUseWIFi] = useState<boolean>(true);
-    let [useCellular, setUseCellular] = useState<boolean>(false);
+    const [initialCall, setInitialCall] = useState<boolean>(false);
 
-    const writeChar = async () => {
-        if(!deviceAddress){
-            console.error('Device address not set, can not write.');
+    const [deviceId, setDeviceId] = useState<string>();
+    const [serverUrl, setServerUrl] = useState<string>();
+    const [port, setPort] = useState<string>();
+
+    const [device, setDevice] = useState<Devices.DeviceDetail | undefined>();
+
+    const [wifiSSID, setWiFiSSID] = useState<string>();
+    const [wifiPWD, setWiFiPWD] = useState<string>();
+    const [commissioned, setCommissioned] = useState<boolean>(false);
+    const [useWiFi, setUseWIFi] = useState<boolean>(true);
+    const [useCellular, setUseCellular] = useState<boolean>(false);
+
+    const writeChar =  async () => {
+        if(!peripheralId){
+            console.error('PeripheralId not set, can not write.');
             return;
         }
 
-        if (await ble.connectById(deviceAddress!)) {
-            console.log('Device Id', deviceId);
-            if (deviceId) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `deviceid=${deviceId}`);
-            if (serverUrl) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `host=${serverUrl}`);
-            if (wifiSSID) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${wifiSSID}`);
-            if (wifiPWD) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${wifiPWD}`);
-            if (port) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `port=${port}`);
+        if (await ble.connectById(peripheralId!)) {
+            if (deviceId) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `deviceid=${deviceId}`);
+            if (serverUrl) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `host=${serverUrl}`);
+            if (wifiSSID) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${wifiSSID}`);
+            if (wifiPWD) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifipwd=${wifiPWD}`);
+            if (port) await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `port=${port}`);
 
-            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'wifi=' + (useWiFi ? '1' : '0'));
-            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'cell=' + (useCellular ? '1' : '0'));
-            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'commissioned=' + (commissioned ? '1' : '0'));
-            await ble.disconnectById(deviceAddress!);
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'wifi=' + (useWiFi ? '1' : '0'));
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'cell=' + (useCellular ? '1' : '0'));
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'commissioned=' + (commissioned ? '1' : '0'));
+            await ble.disconnectById(peripheralId);
           
-            await getData(deviceAddress!);
+            await getData();
         }
         else {
             console.warn('could not connect');
         }
-    }
+    };
 
-    const getData = async (peripheralId: string) => {
+    const getData = async () => {
    
         if (await ble.connectById(peripheralId)) {
             let str = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
             console.log('state=> ' + str);
             str = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
           
-            let parts = str?.split(',')
-
             let sysconfig = new SysConfig(str!);
-            setDeviceId(parts![0]);
+            setDeviceId(sysconfig.deviceId);
             setServerUrl(sysconfig.srvrHostName);
             setCommissioned(sysconfig.commissioned);
             setUseCellular(sysconfig.cellEnabled);
@@ -78,29 +82,35 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
         }
     }
 
-    useEffect(() => {
-        let peripheralId = route.params.id;
-
+    React.useLayoutEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                <View style={{ flexDirection: 'row' }} >
-                    <Icon.Button  backgroundColor="transparent"  underlayColor="transparent" color="navy" onPress={() => writeChar()} name='save' />
-                </View>
-            ),
-        });
+              <View style={{ flexDirection: 'row' }} >
+              <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => writeChar()} name='save' />
+          </View>          
+          ),
+          });        
+      }, [navigation]);
 
-        console.log('Getting connectivity settings for:', peripheralId);
 
-        setDeviceAddress(peripheralId);
-   
-        if (peripheralId) {
-            getData(peripheralId);
-        }
-
+    useEffect(() => {
+        console.log('USE EFFECT CALLED Getting connectivity settings for:', peripheralId);
+        
         return (() => {
             console.log('shutting down...');
         });
     }, []);
+
+    if(!initialCall){
+        
+        
+        console.log('>>>>initial setup<<<<');
+        setInitialCall(true);
+
+        if (peripheralId) {
+            getData();
+        }
+    }
 
     return (
         <ScrollView style={styles.scrollContainer}>
