@@ -10,6 +10,8 @@ import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, C
 import { SysConfig } from "../models/blemodels/sysconfig";
 import Icon from "react-native-vector-icons/Ionicons";
 import { useCallback } from "react";
+import { getActionFromState } from "@react-navigation/native";
+import { RemoteDeviceState } from "../models/blemodels/state";
 
 export const ConnectivityPage = ({ props, navigation, route }) => {
     console.log('METHOD FUNCTION CALLED.');
@@ -26,12 +28,14 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
 
     const [device, setDevice] = useState<Devices.DeviceDetail | undefined>();
 
+    const [wifiConnected, setWiFiConnected] = useState<boolean>();
     const [wifiSSID, setWiFiSSID] = useState<string>();
     const [wifiPWD, setWiFiPWD] = useState<string>();
     const [commissioned, setCommissioned] = useState<boolean>(false);
     const [useWiFi, setUseWIFi] = useState<boolean>(true);
     const [useCellular, setUseCellular] = useState<boolean>(false);
-
+    const [viewReady, setViewReady] = useState<boolean>(false);
+   
     const writeChar =  async () => {
         if(!peripheralId){
             console.error('PeripheralId not set, can not write.');
@@ -60,11 +64,18 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
     const getData = async () => {
    
         if (await ble.connectById(peripheralId)) {
-            let str = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-            console.log('state=> ' + str);
-            str = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
+            let deviceStateCSV = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+            console.log(deviceStateCSV);
+            
+            let deviceState = new RemoteDeviceState(deviceStateCSV!);
+
+            setWiFiConnected(deviceState.wifiConnected);
+            console.log(deviceState.wifiConnected);
+            console.log(deviceState.wifiRSSI);
+
+            let deviceConfig = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
           
-            let sysconfig = new SysConfig(str!);
+            let sysconfig = new SysConfig(deviceConfig!);
             setDeviceId(sysconfig.deviceId);
             setServerUrl(sysconfig.srvrHostName);
             setCommissioned(sysconfig.commissioned);
@@ -73,9 +84,10 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
             setWiFiSSID(sysconfig.wifiSSID);
             setPort(sysconfig.port.toString());
            
-            console.log('sysconfig=> ' + str);
+            console.log('sysconfig=> ' + deviceConfig);
           
             await ble.disconnectById(peripheralId);
+            setViewReady(true);
         }
         else {
             console.warn('could not connect.');
@@ -87,14 +99,13 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
             headerRight: () => (
               <View style={{ flexDirection: 'row' }} >
               <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => writeChar()} name='save' />
-          </View>          
-          ),
+          </View>),
           });        
-      }, [navigation]);
+      }, [navigation, viewReady, deviceId]);
 
 
     useEffect(() => {
-        console.log('USE EFFECT CALLED Getting connectivity settings for:', peripheralId);
+        console.log('USE eFFECT CALLED Getting connectivity settings for:', peripheralId);
         
         return (() => {
             console.log('shutting down...');
@@ -102,8 +113,6 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
     }, []);
 
     if(!initialCall){
-        
-        
         console.log('>>>>initial setup<<<<');
         setInitialCall(true);
 
@@ -116,7 +125,7 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
         <ScrollView style={styles.scrollContainer}>
             <StatusBar style="auto" />
 
-            {device?.deviceId}
+            <Text style={styles.label}>{wifiConnected}</Text>
 
             <Text style={styles.label}>Device Id:</Text>
             <TextInput style={styles.inputStyle} placeholder="enter device id" value={deviceId} onChangeText={e => {setDeviceId(e); console.log(deviceId)}} />
