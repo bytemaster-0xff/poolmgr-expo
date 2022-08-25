@@ -33,6 +33,7 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
 
         if (await ble.connectById(deviceAddress!)) {
             console.log('Device Id', deviceId);
+            console.log('WiFi SSID Id', wifiSSID);
             if (deviceId) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `deviceid=${deviceId}`);
             if (serverUrl) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `host=${serverUrl}`);
             if (wifiSSID) await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `wifissid=${wifiSSID}`);

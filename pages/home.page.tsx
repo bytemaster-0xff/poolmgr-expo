@@ -12,6 +12,7 @@ import Tabbar from "@mindinventory/react-native-tab-bar-interaction";
 import Icon from "react-native-vector-icons/Ionicons";
 import { scan } from "../services/BleManager";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { async } from "rxjs";
 
 export default function ScanPage({ navigation }) {
     let [currentTab, setCurrentTab] = useState<string>("home");
@@ -49,13 +50,80 @@ export default function ScanPage({ navigation }) {
         setRepos(repos);
     }
 
+    const requestLocationPermission = async () => {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
+              title: 'Location permission for bluetooth scanning',
+              message: 'wahtever',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );         
+
+          const btGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN, {
+              title: 'Location permission for bluetooth scanning',
+              message: 'wahtever',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          ); 
+
+          const btcGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, {
+              title: 'Location permission for bluetooth scanning',
+              message: 'wahtever',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          ); 
+
+
+          console.log('all three granted');
+          console.log(granted);
+          console.log(btGranted);
+          console.log(btcGranted);
+          console.log('yes no');
+
+          if (granted === PermissionsAndroid.RESULTS.GRANTED){
+              if(btGranted === PermissionsAndroid.RESULTS.GRANTED) {
+                if(btcGranted === PermissionsAndroid.RESULTS.GRANTED) {              
+                    console.log('Location permission for bluetooth scanning granted');
+                    return true;
+                }
+                else {
+                    console.log('Blue tooth connect permission => ' + btcGranted);        
+                    return false;                    
+                }
+              }
+              else {
+                console.log('Blue tooth scan permission revoked -=> ' + btGranted);    
+                return false;
+              }
+          } else {
+            console.log('Location permission for bluetooth scanning revoked -=> ' + granted);
+            return false;
+          }
+        } catch (err) {
+          console.warn(err);
+          return false;
+        }
+      }
+
     const startScan = async () => {
-        await ble.startScan();
-        setCurrentTab('list');
+        const permission = await requestLocationPermission();
+        if(permission)  {       
+            await ble.startScan();
+            setCurrentTab('list');
+        }
     }
 
     const connect = (peripheral: Peripheral) => {
-        navigation.navigate('tempSensorsPage', { id: peripheral.id });
+        navigation.navigate('sensorsPage', { id: peripheral.id });
     }
 
     const settings = async (peripheral: Peripheral) => {
