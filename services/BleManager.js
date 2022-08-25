@@ -51,13 +51,18 @@ class BleManager {
 
   retrieveServices(peripheralId, services) {
     return new Promise((fulfill, reject) => {
+      console.log('asking for services');
+      console.log(peripheralId);
+      console.log(services);
       bleManager.retrieveServices(
         peripheralId,
         services,
         (error, peripheral) => {
           if (error) {
+            console.log('error getting services ' + error)
             reject(error);
           } else {
+            console.log('got services');
             fulfill(peripheral);
           }
         }
@@ -123,9 +128,12 @@ class BleManager {
   connect(peripheralId) {
     return new Promise((fulfill, reject) => {
       bleManager.connect(peripheralId, error => {
+      console.log('ble mgr connect respoinse')
         if (error) {
+          console.log('error: ' + error)
           reject(error);
         } else {
+          console.log('got connect');
           fulfill();
         }
       });
