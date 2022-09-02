@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, View, Text, TextInput } from "react-native";
-import DropDownPicker from 'react-native-dropdown-picker';
+import { TouchableOpacity, ScrollView, View, Text, TextInput } from "react-native";
+import {Picker} from '@react-native-picker/picker';
 
 
 import styles from '../styles';
@@ -9,29 +9,33 @@ import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, C
 
 export const SensorsPage = ({ props, navigation, route }) => {
     let [deviceAddress, setDeviceAddress] = useState<string>();
-
+    const [initialCall, setInitialCall] = useState<boolean>(false);
     let [item, setItem] = useState();
 
-    const getDeviceProperties = async () => {
-        console.log(deviceAddress);
-        await ble.connectById(deviceAddress!);
+    const getDeviceProperties = async (peripheralId: string) => {
+        console.log(peripheralId);
+        await ble.connectById(peripheralId);
         await ble.subscribe(ble);
-        ble.listenForNotifications(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_STATE );
-        ble.listenForNotifications(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE );
-        console.log('this came from effect');        
+        ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+        ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
+        console.log('this came from effect');
     }
 
     const [portName, setPortName] = useState('');
-    const [analogDeviceType, setAnalogDeviceType] = useState('');
+    const [scaler, setScaler] = useState<string>("0");
+    const [calibration, setCalibration] = useState<string>('0');
+    const [zero, setZero] = useState("0");
 
-    const [open, setOpen] = useState(false);
-    const [value, setValue] = useState(null);
-    const [items, setItems] = useState([
-      {label: 'Apple', value: 'apple'},
-      {label: 'Banana', value: 'banana'}
-    ]);
+    const [digitalDeviceType, setDigitalDeviceType] = useState('0');
+    const [analogDeviceType, setAnalogDeviceType] = useState('0');
 
-    const data = [
+    const [isAdcPortSelected, setIsAdcPortSelected] = useState(false);
+    const [isDigitalPortSelected, setIsDigitalPortSelected] = useState(false);
+
+    const [value, setValue] = useState('');
+
+
+    const ports = [
         { label: 'Analog Port 1', value: 'adc1' },
         { label: 'Analog Port 2', value: 'adc2' },
         { label: 'Analog Port 3', value: 'adc3' },
@@ -56,89 +60,124 @@ export const SensorsPage = ({ props, navigation, route }) => {
         { label: 'Relay 6', value: 'rly6' },
         { label: 'Relay 7', value: 'rly7' },
         { label: 'Relay 8', value: 'rly8' },
-      ];
+    ];
+
+    const adcPortType = [
+        { label: 'None', value: '0' },
+        { label: 'ADC', value: '1' },
+        { label: 'CT', value: '2' },
+        { label: 'Switch', value: '3' },
+    ]
+
+    const ioPortType = [
+        { label: 'None', value: '0' },
+        { label: 'ADC', value: '1' },
+        { label: 'CT', value: '2' },
+        { label: 'Switch', value: '3' },
+    ]
 
     const writeChar = async () => {
         if (await ble.connectById(deviceAddress!)) {
-            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioview=adc1');
-            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioconfig=adc1,Main Temperature,2,5.5,2.8,3.5');
+            console.log(value);
+            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${value}`);
+            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioconfig=${value},${portName},1,${scaler},${calibration},${zero}')`);
             let result1 = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
             console.log('ioconfig => ' + result1);
-
-            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioview=adc2');
-            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioconfig=adc2,Secondary Temperature, 3, 5.5, 2.1,3.7');
-            let result2 = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
-            console.log('ioconfig => ' + result2);
         }
     }
 
-    const readConfig = async () => {
+    const readConfig = async (port: string) => {
         if (await ble.connectById(deviceAddress!)) {
-            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, 'setioview=adc1');
+            await ble.writeCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG, `setioview=${port}`);
             let str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
-            console.log(str);
-        }
+            if (str) {
+                let parts = str.split(',');
+                if (parts.length > 5) {
+                    setPortName(parts[1]);
+                    setAnalogDeviceType(parts[2]);
+                    setScaler(parts[3]);
+                    setCalibration(parts[4]);
+                    setZero(parts[5]);
+                }
 
+                console.log('this is adc1');
+                console.log(str);
+                console.log(parts);
+            }
+        }
     }
 
-    const getData = async () => {
-        if (await ble.connectById(deviceAddress!)) {
-            let str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-            console.log('state=> ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
-            console.log('sysconfog=> ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IOCONFIG);
-            console.log('ioconfig => ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_ADC_IOCONFIG);
-            console.log('adcconfig => ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE );
-            console.log('iovaluec => ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_ADC_VALUE );
-            console.log('adcvalueconfig => ' + str);
-            str = await ble.getCharacteristic(deviceAddress!, SVC_UUID_NUVIOT, CHAR_UUID_RELAY );
-            console.log('uuid relay => ' + str);
-                                
-            console.log('requested data from device');
-            await ble.disconnectById(deviceAddress!);
-        }
-        else {
-            console.log('could not connect.');
-        }
+    const portChanged = async(port: string) => {
+        console.log(port);
+        setValue(port);
+        readConfig(port);
+        setIsAdcPortSelected(port.startsWith('adc'));
+        setIsDigitalPortSelected(port.startsWith('io'));
+    }
+
+    const resetConfig = () => {
+        setPortName(value);
+        setAnalogDeviceType('0');
+        setScaler('1');
+        setZero('0');
+        setCalibration('1');
     }
 
     useEffect(() => {
-        setDeviceAddress(route.params.id);
-        getDeviceProperties();
-
         return (() => {
             console.log('Leaving sensors page.');
             ble.unsubscribe();
         })
-    });
+    }, []);
+
+    if (!initialCall) {
+        let peripheralId = route.params.id;
+
+        setDeviceAddress(peripheralId);
+        console.log('>>>>initial setup<<<< -> ' + peripheralId);
+        setInitialCall(true);
+
+        if (peripheralId) {
+            getDeviceProperties(peripheralId);
+        }
+    }
 
     return (
-        <View style={styles.container}>
+        <View style={styles.scrollContainer}>
             <StatusBar style="auto" />
-            <DropDownPicker
-                  open={open}
-                  value={value}
-                  items={data}
-                  setOpen={setOpen}
-                  setValue={setValue}
-                  setItems={setItems}
-            /> 
+            <Text style={styles.label}>Port:</Text>
+            <Picker selectedValue={value}  onValueChange={portChanged} >
+                {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} />)}
+            </Picker>
+
+            {(isAdcPortSelected) &&            
+            <View>
+                <Text style={styles.label}>ADC Type:</Text>
+                <Picker  selectedValue={analogDeviceType}   onValueChange={(value) => setAnalogDeviceType(value)} >
+                    {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} />)}
+                </Picker>
+            </View>
+            }
+
+            {(isDigitalPortSelected) &&            
+            <View>
+            <Text style={styles.label}>Digitial Port Type:</Text>
+            <Picker  selectedValue={digitalDeviceType}  onValueChange={(value) => setDigitalDeviceType(value)} >
+                {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} />)}
+            </Picker>
+            </View>
+            }
 
             <Text style={styles.label}>Port Name:</Text>
-            <TextInput style={styles.inputStyle} placeholder="enter name for port or something" onChangeText={e => setPortName(e)}/> 
+            <TextInput style={styles.inputStyle} placeholder="enter name for port or something" value={portName} onChangeText={e => setPortName(e)} />
+            <TextInput style={styles.inputStyle} placeholder="scaler" value={scaler} onChangeText={e => setScaler(e)} />
+            <TextInput style={styles.inputStyle} placeholder="zero" value={zero} onChangeText={e => setZero(e)} />            
+            <TextInput style={styles.inputStyle} placeholder="calibration" value={calibration} onChangeText={e => setCalibration(e)} />
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => readConfig()}>
-                <Text style={styles.submitButtonText}> Read </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.submitButton} onPress={() => writeChar()}>
-                <Text style={styles.submitButtonText}> Write it </Text>
-            </TouchableOpacity>
-
+            <View style={{flexDirection:"row"}}>
+                <TouchableOpacity style={styles.submitButton} onPress={() => resetConfig()}><Text style={styles.submitButtonText}> Reset </Text></TouchableOpacity>
+                <TouchableOpacity style={styles.submitButton} onPress={() => writeChar()}><Text style={styles.submitButtonText}> Write it </Text></TouchableOpacity>
+            </View>
         </View>
     );
 }

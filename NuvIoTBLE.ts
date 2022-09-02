@@ -145,7 +145,7 @@ export class NuvIoTBLE {
     this.subs.push(bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', (peripheral: Peripheral) => this.handleDisconnectedPeripheral(ble, peripheral)));
     this.subs.push(bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', ({ value, peripheral, characteristic, service }) => {
       // Convert bytes array to string
-      console.log(`Recieved something for characteristic ${characteristic}`);
+      console.log(`Recieved something for characteristic ${characteristic} -> ${value}`);
     }));
 
     console.log('subscription added, subscription count => ' + this.subs.length);
