@@ -28,7 +28,7 @@ export const TempSensorPage = ({ props, navigation, route }) => {
             let result1 = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
             if (result1) {
                 let state = new RemoteDeviceState(result1);
-                console.log('WiFi Connected: ' + state.wifiConnected);
+                console.log('WiFi Connected: ' + state.wifiStatus);
             }
 
             result1 = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);

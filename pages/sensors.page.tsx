@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, ScrollView, View, Text, TextInput } from "react-native";
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
 
 
 import styles from '../styles';
 import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { IReactPageServices } from "../services/react-page-services";
 
-export const SensorsPage = ({ props, navigation, route }) => {
+export const SensorsPage = ({ props, navigation, route }: IReactPageServices) => {
     let [deviceAddress, setDeviceAddress] = useState<string>();
     const [initialCall, setInitialCall] = useState<boolean>(false);
-    let [item, setItem] = useState();
 
     const getDeviceProperties = async (peripheralId: string) => {
         console.log(peripheralId);
@@ -19,9 +19,13 @@ export const SensorsPage = ({ props, navigation, route }) => {
         ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
         ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
         console.log('this came from effect');
+        ble.emitter.addListener('receive', (value) => {
+            console.log(value);
+        });
     }
 
     const [portName, setPortName] = useState('');
+
     const [scaler, setScaler] = useState<string>("0");
     const [calibration, setCalibration] = useState<string>('0');
     const [zero, setZero] = useState("0");
@@ -29,6 +33,7 @@ export const SensorsPage = ({ props, navigation, route }) => {
     const [digitalDeviceType, setDigitalDeviceType] = useState('0');
     const [analogDeviceType, setAnalogDeviceType] = useState('0');
 
+    const [hasAnyPort, setHasAnyPort] = useState(false);
     const [isAdcPortSelected, setIsAdcPortSelected] = useState(false);
     const [isDigitalPortSelected, setIsDigitalPortSelected] = useState(false);
 
@@ -36,6 +41,7 @@ export const SensorsPage = ({ props, navigation, route }) => {
 
 
     const ports = [
+        { label: '-select port-', value: '-1' },
         { label: 'Analog Port 1', value: 'adc1' },
         { label: 'Analog Port 2', value: 'adc2' },
         { label: 'Analog Port 3', value: 'adc3' },
@@ -107,12 +113,15 @@ export const SensorsPage = ({ props, navigation, route }) => {
         }
     }
 
-    const portChanged = async(port: string) => {
-        console.log(port);
+    const portChanged = async (port: string) => {        
         setValue(port);
-        readConfig(port);
+        
         setIsAdcPortSelected(port.startsWith('adc'));
         setIsDigitalPortSelected(port.startsWith('io'));
+        setHasAnyPort(port != '-1');
+        if(port != '-1') {
+            readConfig(port);
+        }
     }
 
     const resetConfig = () => {
@@ -146,38 +155,42 @@ export const SensorsPage = ({ props, navigation, route }) => {
         <View style={styles.scrollContainer}>
             <StatusBar style="auto" />
             <Text style={styles.label}>Port:</Text>
-            <Picker selectedValue={value}  onValueChange={portChanged} >
+            <Picker selectedValue={value} onValueChange={portChanged} >
                 {ports.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} />)}
             </Picker>
 
-            {(isAdcPortSelected) &&            
-            <View>
-                <Text style={styles.label}>ADC Type:</Text>
-                <Picker  selectedValue={analogDeviceType}   onValueChange={(value) => setAnalogDeviceType(value)} >
-                    {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} />)}
-                </Picker>
-            </View>
+            {(isAdcPortSelected) &&
+                <View>
+                    <Text style={styles.label}>ADC Type:</Text>
+                    <Picker selectedValue={analogDeviceType} onValueChange={(value) => setAnalogDeviceType(value)} >
+                        {adcPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} />)}
+                    </Picker>
+                </View>
             }
 
-            {(isDigitalPortSelected) &&            
-            <View>
-            <Text style={styles.label}>Digitial Port Type:</Text>
-            <Picker  selectedValue={digitalDeviceType}  onValueChange={(value) => setDigitalDeviceType(value)} >
-                {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} />)}
-            </Picker>
-            </View>
+            {(isDigitalPortSelected) &&
+                <View>
+                    <Text style={styles.label}>Digitial Port Type:</Text>
+                    <Picker selectedValue={digitalDeviceType} onValueChange={(value) => setDigitalDeviceType(value)} >
+                        {ioPortType.map(itm => <Picker.Item key={itm.value} label={itm.label} value={itm.value} />)}
+                    </Picker>
+                </View>
             }
 
-            <Text style={styles.label}>Port Name:</Text>
-            <TextInput style={styles.inputStyle} placeholder="enter name for port or something" value={portName} onChangeText={e => setPortName(e)} />
-            <TextInput style={styles.inputStyle} placeholder="scaler" value={scaler} onChangeText={e => setScaler(e)} />
-            <TextInput style={styles.inputStyle} placeholder="zero" value={zero} onChangeText={e => setZero(e)} />            
-            <TextInput style={styles.inputStyle} placeholder="calibration" value={calibration} onChangeText={e => setCalibration(e)} />
+            {(hasAnyPort) &&
+                <View>
+                    <Text style={styles.label}>Port Name:</Text>
+                    <TextInput style={styles.inputStyle} placeholder="enter name for port or something" value={portName} onChangeText={e => setPortName(e)} />
+                    <TextInput style={styles.inputStyle} placeholder="scaler" value={scaler} onChangeText={e => setScaler(e)} />
+                    <TextInput style={styles.inputStyle} placeholder="zero" value={zero} onChangeText={e => setZero(e)} />
+                    <TextInput style={styles.inputStyle} placeholder="calibration" value={calibration} onChangeText={e => setCalibration(e)} />
 
-            <View style={{flexDirection:"row"}}>
-                <TouchableOpacity style={styles.submitButton} onPress={() => resetConfig()}><Text style={styles.submitButtonText}> Reset </Text></TouchableOpacity>
-                <TouchableOpacity style={styles.submitButton} onPress={() => writeChar()}><Text style={styles.submitButtonText}> Write it </Text></TouchableOpacity>
-            </View>
+                    <View style={{ flexDirection: "row" }}>
+                        <TouchableOpacity style={styles.submitButton} onPress={() => resetConfig()}><Text style={styles.submitButtonText}> Reset </Text></TouchableOpacity>
+                        <TouchableOpacity style={styles.submitButton} onPress={() => writeChar()}><Text style={styles.submitButtonText}> Write it </Text></TouchableOpacity>
+                    </View>
+                </View>
+            }
         </View>
     );
 }

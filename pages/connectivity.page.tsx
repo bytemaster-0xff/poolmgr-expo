@@ -1,19 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { View, ScrollView, Text, TextInput , Switch, TouchableOpacity} from "react-native";
-import DropDownPicker from 'react-native-dropdown-picker';
-
-import services from '../services/app-services';
 
 import styles from '../styles';
 import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { SysConfig } from "../models/blemodels/sysconfig";
 import Icon from "react-native-vector-icons/Ionicons";
-import { useCallback } from "react";
-import { getActionFromState } from "@react-navigation/native";
 import { RemoteDeviceState } from "../models/blemodels/state";
+import { IReactPageServices } from "../services/react-page-services";
 
-export const ConnectivityPage = ({ props, navigation, route }) => {
+
+export const ConnectivityPage = ({ props, navigation, route }: IReactPageServices) => {
     console.log('METHOD FUNCTION CALLED.');
 
     const peripheralId = route.params.id;
@@ -28,7 +25,7 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
 
     const [device, setDevice] = useState<Devices.DeviceDetail | undefined>();
 
-    const [wifiConnected, setWiFiConnected] = useState<boolean>();
+    const [wifiConnected, setWiFiConnected] = useState<string>();
     const [wifiSSID, setWiFiSSID] = useState<string>();
     const [wifiPWD, setWiFiPWD] = useState<string>();
     const [commissioned, setCommissioned] = useState<boolean>(false);
@@ -70,8 +67,8 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
             
             let deviceState = new RemoteDeviceState(deviceStateCSV!);
 
-            setWiFiConnected(deviceState.wifiConnected);
-            console.log(deviceState.wifiConnected);
+            setWiFiConnected(deviceState.wifiStatus);
+            console.log(deviceState.wifiStatus);
             console.log(deviceState.wifiRSSI);
 
             let deviceConfig = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
@@ -92,6 +89,16 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
         }
         else {
             console.warn('could not connect.');
+        }
+    }
+
+    const restartDevice = async() => {
+        if (await ble.connectById(peripheralId)) {
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
+            await ble.disconnectById(peripheralId);
+        }
+        else {
+            console.warn('could not connect');
         }
     }
 
@@ -153,7 +160,11 @@ export const ConnectivityPage = ({ props, navigation, route }) => {
             <Switch  onValueChange = {e => setUseCellular(e)} value = {useCellular}/>
 
             <TouchableOpacity style={[styles.submitButton]} onPress={() => writeChar()}>
-               <Text style={[styles.submitButtonText, { color: 'white' }]}> Update Devices </Text>
+               <Text style={[styles.submitButtonText, { color: 'white' }]}> Update </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.submitButton]} onPress={() => restartDevice()}>
+               <Text style={[styles.submitButtonText, { color: 'white' }]}> Restart </Text>
             </TouchableOpacity>
 
         </ScrollView>

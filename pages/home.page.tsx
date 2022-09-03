@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { Text, PermissionsAndroid, Platform, View, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Button } from 'react-native';
+import { Text, PermissionsAndroid, Platform, View, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Button, Pressable } from 'react-native';
 import { Peripheral } from 'react-native-ble-manager'
 import { ble } from '../NuvIoTBLE'
 import services from '../services/app-services';
 
-
-
 import styles from '../styles';
 import Tabbar from "@mindinventory/react-native-tab-bar-interaction";
 import Icon from "react-native-vector-icons/Ionicons";
-import { scan } from "../services/BleManager";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { async } from "rxjs";
+import { IReactPageServices } from "../services/react-page-services";
 
-export default function ScanPage({ navigation }) {
+export default function ScanPage({ navigation }: IReactPageServices) {
+
     let [currentTab, setCurrentTab] = useState<string>("home");
     let [devices, setDevices] = useState<Peripheral[]>([]);
     let [isScanning, setIsScanning] = useState<boolean>(false);
@@ -52,71 +50,71 @@ export default function ScanPage({ navigation }) {
 
     const requestLocationPermission = async () => {
         try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
-              title: 'Location permission for bluetooth scanning',
-              message: 'wahtever',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
+            const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION, {
+                title: 'Location permission for bluetooth scanning',
+                message: 'wahtever',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
             },
-          );         
+            );
 
-          const btGranted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN, {
-              title: 'Location permission for bluetooth scanning',
-              message: 'wahtever',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
+            const btGranted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN, {
+                title: 'Location permission for bluetooth scanning',
+                message: 'wahtever',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
             },
-          ); 
+            );
 
-          const btcGranted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, {
-              title: 'Location permission for bluetooth scanning',
-              message: 'wahtever',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
+            const btcGranted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, {
+                title: 'Location permission for bluetooth scanning',
+                message: 'wahtever',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',
             },
-          ); 
+            );
 
 
-          console.log('all three granted');
-          console.log(granted);
-          console.log(btGranted);
-          console.log(btcGranted);
-          console.log('yes no');
+            console.log('all three granted');
+            console.log(granted);
+            console.log(btGranted);
+            console.log(btcGranted);
+            console.log('yes no');
 
-          if (granted === PermissionsAndroid.RESULTS.GRANTED){
-              if(btGranted === PermissionsAndroid.RESULTS.GRANTED) {
-                if(btcGranted === PermissionsAndroid.RESULTS.GRANTED) {              
-                    console.log('Location permission for bluetooth scanning granted');
-                    return true;
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                if (btGranted === PermissionsAndroid.RESULTS.GRANTED) {
+                    if (btcGranted === PermissionsAndroid.RESULTS.GRANTED) {
+                        console.log('Location permission for bluetooth scanning granted');
+                        return true;
+                    }
+                    else {
+                        console.log('Blue tooth connect permission => ' + btcGranted);
+                        return false;
+                    }
                 }
                 else {
-                    console.log('Blue tooth connect permission => ' + btcGranted);        
-                    return false;                    
+                    console.log('Blue tooth scan permission revoked -=> ' + btGranted);
+                    return false;
                 }
-              }
-              else {
-                console.log('Blue tooth scan permission revoked -=> ' + btGranted);    
+            } else {
+                console.log('Location permission for bluetooth scanning revoked -=> ' + granted);
                 return false;
-              }
-          } else {
-            console.log('Location permission for bluetooth scanning revoked -=> ' + granted);
-            return false;
-          }
+            }
         } catch (err) {
-          console.warn(err);
-          return false;
+            console.warn(err);
+            return false;
         }
-      }
+    }
 
     const startScan = async () => {
         const permission = await requestLocationPermission();
-        if(permission)  {       
+        if (permission) {
             await ble.startScan();
             setCurrentTab('list');
         }
@@ -126,8 +124,10 @@ export default function ScanPage({ navigation }) {
         navigation.navigate('sensorsPage', { id: peripheral.id });
     }
 
-    const settings = async (peripheral: Peripheral) => {
-        navigation.navigate('settingsPage', { id: peripheral.id });
+
+
+    const showDevice = async (peripheral: Peripheral) => {
+        navigation.navigate('devicePage', { id: peripheral.id });
     }
 
     const clear = async () => {
@@ -245,19 +245,14 @@ export default function ScanPage({ navigation }) {
             ListEmptyComponent={myListEmpty}
             data={devices}
             renderItem={({ item }) =>
-                <View style={[styles.listRow, { padding: 10, height: 90, }]} key={item.id}>
-                    <View style={{ flex: 4 }}>
-                        <Text style={[{ color: 'gray', flex: 3 }]}>{item.name}</Text>
-                        <Text style={[{ color: 'gray', flex: 3 }]}>Test</Text>
+                <Pressable onPress={() => showDevice(item)}>
+                    <View style={[styles.listRow, { padding: 10, height: 90, }]} key={item.id}>
+                        <View style={{ flex: 4 }}>
+                            <Text style={[{ color: 'gray', flex: 3 }]}>{item.name}</Text>
+                            <Text style={[{ color: 'gray', flex: 3 }]}>Test</Text>
+                        </View>
                     </View>
-
-                    <TouchableOpacity style={[styles.submitButton, { flex: 3 }]} onPress={() => connect(item)}>
-                        <Text style={[styles.submitButtonText, { color: 'white' }]}> CONNECT </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.submitButton, { flex: 3 }]} onPress={() => settings(item)}>
-                        <Text style={[styles.submitButtonText, { color: 'white' }]}> SETTINGS </Text>
-                    </TouchableOpacity>
-                </View>
+                </Pressable>
             } />);
 
     }

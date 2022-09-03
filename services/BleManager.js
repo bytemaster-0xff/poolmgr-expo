@@ -133,7 +133,6 @@ class BleManager {
           console.log('error: ' + error)
           reject(error);
         } else {
-          console.log('got connect');
           fulfill();
         }
       });
@@ -441,6 +440,7 @@ class BleManager {
     return new Promise((fulfill, reject) => {
       bleManager.requestMTU(peripheralId, mtu, (error, mtu) => {
         if (error) {
+          console.log('error request mtu');
           reject(error);
         } else {
           fulfill(mtu);

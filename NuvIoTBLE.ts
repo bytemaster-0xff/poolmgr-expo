@@ -3,7 +3,8 @@ import { Peripheral } from 'react-native-ble-manager';
 import { AsyncStorageStatic } from "react-native";
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-import BleManager from './services/BleManager'
+import BleManager, { requestMTU } from './services/BleManager'
+var Buffer = require('buffer/').Buffer
 
 export const SVC_UUID_NUVIOT = "d804b639-6ce7-4e80-9f8a-ce0f699085eb"
 export const CHAR_UUID_STATE = "d804b639-6ce7-5e81-9f8a-ce0f699085eb"
@@ -133,7 +134,7 @@ export class NuvIoTBLE {
   subscribe(ble: NuvIoTBLE) {
     if (ble == null) {
       throw 'BLE is null, requires instance of BLE manager for subscription.'
-    }
+    }    
 
     bleManagerEmitter.removeAllListeners('BleManagerDiscoverPeripheral');
     bleManagerEmitter.removeAllListeners('BleManagerStopScan');
@@ -145,7 +146,10 @@ export class NuvIoTBLE {
     this.subs.push(bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', (peripheral: Peripheral) => this.handleDisconnectedPeripheral(ble, peripheral)));
     this.subs.push(bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', ({ value, peripheral, characteristic, service }) => {
       // Convert bytes array to string
-      console.log(`Recieved something for characteristic ${characteristic} -> ${value}`);
+      const buffer = Buffer.from(value);
+        
+      const decodedValue = buffer.toString();
+      ble.emitter.emit('receive', {characteristic: characteristic, value: decodedValue});
     }));
 
     console.log('subscription added, subscription count => ' + this.subs.length);
@@ -330,6 +334,7 @@ export class NuvIoTBLE {
       let result = await BleManager.isPeripheralConnected(id)
       if (result) {
         console.log('already connected.');
+        let resetResult = await BleManager.requestMTU(id, 512);
         return true;
       }
       else {
@@ -338,6 +343,10 @@ export class NuvIoTBLE {
           await BleManager.connect(id);
           console.log('getting services');
           await BleManager.retrieveServices(id);
+          
+          let resetResult = await BleManager.requestMTU(id, 512);
+          console.log('result')
+          
           console.log('connected');
           return true;
         }
@@ -347,6 +356,8 @@ export class NuvIoTBLE {
           return false;
         }
       }
+
+
     }
   }
 
