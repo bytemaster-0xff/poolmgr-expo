@@ -9,7 +9,6 @@ import { BlePropertiesPage } from './pages/bleproperties.page';
 import { SensorsPage } from './pages/sensors.page';
 import { DevicePage} from './pages/device.page';
 import { TempSensorPage } from './pages/tempSensor.page';
-import { SettingsPage } from './pages/settings.page';
 
 const Stack = createNativeStackNavigator();
 

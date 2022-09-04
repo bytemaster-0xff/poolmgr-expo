@@ -192,7 +192,8 @@ export class NuvIoTBLE {
         let peripheral: Peripheral = {
           id: id,
           name: `Perip - ${id}`,
-          rssi: (new Date()).getSeconds().toString(),
+          rssi: (new Date()).getSeconds(),
+          advertising: {}
         }
 
         ble.peripherals.push(peripheral);
@@ -343,7 +344,7 @@ export class NuvIoTBLE {
           await BleManager.connect(id);
           console.log('getting services');
           await BleManager.retrieveServices(id);
-          
+
           let resetResult = await BleManager.requestMTU(id, 512);
           console.log('result')
           

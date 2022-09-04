@@ -32,6 +32,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     const [useWiFi, setUseWIFi] = useState<boolean>(true);
     const [useCellular, setUseCellular] = useState<boolean>(false);
     const [viewReady, setViewReady] = useState<boolean>(false);
+    const [handler, setHandler] = useState<string|undefined>(undefined)
    
     const writeChar =  async () => {
         if(!peripheralId){
@@ -106,7 +107,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
         navigation.setOptions({
             headerRight: () => (
               <View style={{ flexDirection: 'row' }} >
-              <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => writeChar()} name='save' />
+              <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => setHandler('save')} name='save' />
           </View>),
           });        
       }, [navigation, viewReady, deviceId]);
@@ -115,10 +116,16 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     useEffect(() => {
         console.log('USE eFFECT CALLED Getting connectivity settings for:', peripheralId);
         
+        switch(handler) {
+            case 'save': writeChar(); 
+            setHandler(undefined);
+            break;
+        }
+
         return (() => {
             console.log('shutting down...');
         });
-    }, []);
+    }, [handler]);
 
     if(!initialCall){
         console.log('>>>>initial setup<<<<');
@@ -132,8 +139,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     return (
         <ScrollView style={styles.scrollContainer}>
             <StatusBar style="auto" />
-
-            <Text style={styles.label}>{wifiConnected}</Text>
 
             <Text style={styles.label}>Device Id:</Text>
             <TextInput style={styles.inputStyle} placeholder="enter device id" value={deviceId} onChangeText={e => {setDeviceId(e); console.log(deviceId)}} />
@@ -158,15 +163,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
             <Text style={styles.label}>Use Cellular:</Text>
             <Switch  onValueChange = {e => setUseCellular(e)} value = {useCellular}/>
-
-            <TouchableOpacity style={[styles.submitButton]} onPress={() => writeChar()}>
-               <Text style={[styles.submitButtonText, { color: 'white' }]}> Update </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[styles.submitButton]} onPress={() => restartDevice()}>
-               <Text style={[styles.submitButtonText, { color: 'white' }]}> Restart </Text>
-            </TouchableOpacity>
-
-        </ScrollView>
+       </ScrollView>
     );
 }
