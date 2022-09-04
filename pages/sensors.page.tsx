@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
+import Icon from "react-native-vector-icons/Ionicons";
 import { TouchableOpacity, ScrollView, View, Text, TextInput } from "react-native";
 import { Picker } from '@react-native-picker/picker';
 
@@ -9,7 +10,9 @@ import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, C
 import { IReactPageServices } from "../services/react-page-services";
 
 export const SensorsPage = ({ props, navigation, route }: IReactPageServices) => {
-    let [deviceAddress, setDeviceAddress] = useState<string>();
+    let peripheralId = route.params.id;
+
+    const [deviceAddress, setDeviceAddress] = useState<string>();
     const [initialCall, setInitialCall] = useState<boolean>(false);
 
     const getDeviceProperties = async (peripheralId: string) => {
@@ -38,6 +41,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     const [isDigitalPortSelected, setIsDigitalPortSelected] = useState(false);
 
     const [value, setValue] = useState('');
+    const [handler, setHandler] = useState<string|undefined>(undefined)
 
 
     const ports = [
@@ -132,16 +136,41 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
         setCalibration('1');
     }
 
+    const restartDevice = async() => {
+        if (await ble.connectById(peripheralId)) {
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
+            await ble.disconnectById(peripheralId);
+        }
+        else {
+            console.warn('could not connect');
+        }
+    }
+
+    React.useLayoutEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+              <View style={{ flexDirection: 'row' }} >
+              <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => setHandler('save')} name='save' />
+          </View>),
+          });        
+      }, []);
+
+
     useEffect(() => {
+        switch(handler) {
+            case 'save': writeChar(); 
+            setHandler(undefined);
+            break;
+        }        
+
         return (() => {
             console.log('Leaving sensors page.');
+            ble.emitter.removeAllListeners('receive');
             ble.unsubscribe();
         })
-    }, []);
+    }, [handler]);
 
     if (!initialCall) {
-        let peripheralId = route.params.id;
-
         setDeviceAddress(peripheralId);
         console.log('>>>>initial setup<<<< -> ' + peripheralId);
         setInitialCall(true);
@@ -187,7 +216,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
 
                     <View style={{ flexDirection: "row" }}>
                         <TouchableOpacity style={styles.submitButton} onPress={() => resetConfig()}><Text style={styles.submitButtonText}> Reset </Text></TouchableOpacity>
-                        <TouchableOpacity style={styles.submitButton} onPress={() => writeChar()}><Text style={styles.submitButtonText}> Write it </Text></TouchableOpacity>
+                        <TouchableOpacity style={styles.submitButton} onPress={() => restartDevice()}><Text style={styles.submitButtonText}> Restart </Text></TouchableOpacity>
                     </View>
                 </View>
             }

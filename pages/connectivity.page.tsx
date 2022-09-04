@@ -23,9 +23,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
     const [serverUrl, setServerUrl] = useState<string>();
     const [port, setPort] = useState<string>();
 
-    const [device, setDevice] = useState<Devices.DeviceDetail | undefined>();
 
-    const [wifiConnected, setWiFiConnected] = useState<string>();
     const [wifiSSID, setWiFiSSID] = useState<string>();
     const [wifiPWD, setWiFiPWD] = useState<string>();
     const [commissioned, setCommissioned] = useState<boolean>(false);
@@ -66,11 +64,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
             let deviceStateCSV = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
             console.log(deviceStateCSV);
             
-            let deviceState = new RemoteDeviceState(deviceStateCSV!);
-
-            setWiFiConnected(deviceState.wifiStatus);
-            console.log(deviceState.wifiStatus);
-            console.log(deviceState.wifiRSSI);
+            let deviceState = new RemoteDeviceState(deviceStateCSV!);        
 
             let deviceConfig = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
           
@@ -90,16 +84,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
         }
         else {
             console.warn('could not connect.');
-        }
-    }
-
-    const restartDevice = async() => {
-        if (await ble.connectById(peripheralId)) {
-            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
-            await ble.disconnectById(peripheralId);
-        }
-        else {
-            console.warn('could not connect');
         }
     }
 
