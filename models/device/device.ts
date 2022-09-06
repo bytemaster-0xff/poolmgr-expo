@@ -477,6 +477,7 @@ namespace Devices {
     inputCommandEndPoints: any[];
     notes: DeviceNote[];
     errors: DeviceError[];
+    macAddress: string;
   }
 }
 

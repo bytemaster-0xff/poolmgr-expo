@@ -327,7 +327,7 @@ export class NuvIoTBLE {
     }
   }
 
-  async connectById(id: string): Promise<boolean> {
+  async connectById(id: string, characteristicId: string | undefined = undefined): Promise<boolean> {
     if (this.simulatedBLE()) {
       return true;
     }
@@ -343,12 +343,23 @@ export class NuvIoTBLE {
         try {
           await BleManager.connect(id);
           console.log('getting services');
-          await BleManager.retrieveServices(id);
+          let services = await BleManager.retrieveServices(id);
+          await BleManager.requestMTU(id, 512);
 
-          let resetResult = await BleManager.requestMTU(id, 512);
-          console.log('result')
-          
-          console.log('connected');
+          if(characteristicId) {
+            for(let chr of services.characteristics){
+              if(chr.characteristic == characteristicId) {
+                console.log('found device with characteristic');
+                return true;
+              }
+            }
+
+            console.log('characteristic id not found for device, disconnecting');
+            await this.disconnectById(id);
+            return false;
+          }
+                  
+          console.log('connected independent of characteristic id.');
           return true;
         }
         catch (e) {

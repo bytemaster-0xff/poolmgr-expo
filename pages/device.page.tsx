@@ -16,7 +16,6 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
     const [repos, setRepos] = useState<Devices.DeviceRepoSummary[] | undefined>()
     const peripheralId = route.params.id;
 
-
     const loadRepos = async () => {
         console.log('loading repos.');
         let repos = await services.deviceServices.loadDeviceRepositories();

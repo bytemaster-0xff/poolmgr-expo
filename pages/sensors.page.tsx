@@ -209,7 +209,7 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             {(hasAnyPort) &&
                 <View>
                     <Text style={styles.label}>Port Name:</Text>
-                    <TextInput style={styles.inputStyle} placeholder="enter name for port or something" value={portName} onChangeText={e => setPortName(e)} />
+                    <TextInput style={styles.inputStyle} placeholder="name" value={portName} onChangeText={e => setPortName(e)} />
                     <TextInput style={styles.inputStyle} placeholder="scaler" value={scaler} onChangeText={e => setScaler(e)} />
                     <TextInput style={styles.inputStyle} placeholder="zero" value={zero} onChangeText={e => setZero(e)} />
                     <TextInput style={styles.inputStyle} placeholder="calibration" value={calibration} onChangeText={e => setCalibration(e)} />

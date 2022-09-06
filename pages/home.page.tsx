@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { Text, PermissionsAndroid, Platform, View, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Button, Pressable } from 'react-native';
+import { Text, PermissionsAndroid, Platform, View, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Button, Pressable, TurboModuleRegistry } from 'react-native';
 import { Peripheral } from 'react-native-ble-manager'
-import { ble } from '../NuvIoTBLE'
+import { ble, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import services from '../services/app-services';
 
 import styles from '../styles';
@@ -12,11 +12,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IReactPageServices } from "../services/react-page-services";
 
 export default function ScanPage({ navigation }: IReactPageServices) {
-
-    let [currentTab, setCurrentTab] = useState<string>("home");
-    let [devices, setDevices] = useState<Peripheral[]>([]);
-    let [isScanning, setIsScanning] = useState<boolean>(false);
-    let [repos, setRepos] = useState<Devices.DeviceRepoSummary[] | undefined>()
+    const [currentTab, setCurrentTab] = useState<string>("home");
+    const [devices, setDevices] = useState<Peripheral[]>([]);
+    const [isScanning, setIsScanning] = useState<boolean>(false);
+    const [repos, setRepos] = useState<Devices.DeviceRepoSummary[] | undefined>()
+    const [initialCall, setInitialCall] = useState<boolean>(true);
 
     const tabs = [
         {
@@ -41,6 +41,8 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         },
 
     ];
+
+    
 
     const loadRepos = async () => {
         console.log('loading repos.');
@@ -120,14 +122,8 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         }
     }
 
-    const connect = (peripheral: Peripheral) => {
-        navigation.navigate('sensorsPage', { id: peripheral.id });
-    }
-
-
-
     const showDevice = async (peripheral: Peripheral) => {
-        navigation.navigate('devicePage', { id: peripheral.id });
+        navigation.navigate('provisionPage', { id: peripheral.id });
     }
 
     const clear = async () => {
@@ -144,43 +140,47 @@ export default function ScanPage({ navigation }: IReactPageServices) {
     }
 
     useEffect(() => {
-        console.log('---');
-        console.log('---');
-        console.log('-----------------');
+        if (initialCall) {
+            console.log('---');
+            console.log('---');
+            console.log('-----------------');
 
-        loadRepos();
+            loadRepos();
 
-        navigation.setOptions({
-            headerRight: () => (
-                <View style={{ flexDirection: 'row' }} >
-                    <Button onPress={() => clear()} title="CLR" />
-                    <Button onPress={() => startScan()} title="SCN" />
-                </View>
-            ),
-        });
-
-        ble.emitter.removeAllListeners('connected');
-        ble.emitter.removeAllListeners('scanning');
-        ble.emitter.addListener('connected', (device) => refresh(device))
-        ble.emitter.addListener('scanning', (isScanning) => {
-            setIsScanning(isScanning);
-            console.log('setting scanning' + isScanning);
-        });
-
-        if (Platform.OS === 'android' && Platform.Version >= 23) {
-            PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
-                if (result) {
-                    console.log("Permission is OK");
-                } else {
-                    PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
-                        if (result) {
-                            console.log("User accept");
-                        } else {
-                            console.log("User refuse");
-                        }
-                    });
-                }
+            navigation.setOptions({
+                headerRight: () => (
+                    <View style={{ flexDirection: 'row' }} >
+                        <Button onPress={() => clear()} title="CLR" />
+                        <Button onPress={() => startScan()} title="SCN" />
+                    </View>
+                ),
             });
+
+            ble.emitter.removeAllListeners('connected');
+            ble.emitter.removeAllListeners('scanning');
+            ble.emitter.addListener('connected', (device) => refresh(device))
+            ble.emitter.addListener('scanning', (isScanning) => {
+                setIsScanning(isScanning);
+                console.log('setting scanning' + isScanning);
+            });
+
+            if (Platform.OS === 'android' && Platform.Version >= 23) {
+                PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
+                    if (result) {
+                        console.log("Permission is OK");
+                    } else {
+                        PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then((result) => {
+                            if (result) {
+                                console.log("User accept");
+                            } else {
+                                console.log("User refuse");
+                            }
+                        });
+                    }
+                });
+            }
+
+            setInitialCall(false);
         }
 
         return (() => {
@@ -188,7 +188,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
             console.log("----------------");
             console.log('unsubscribe called.');
             ble.unsubscribe();
-        })
+        });
     }, []);
 
     const tabChanged = (tab: any) => {
@@ -199,12 +199,22 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         navigation.replace('authPage');
     }
 
-    const refresh = (name: Peripheral) => {
-        console.log('device count' + devices.length);
-        if (devices.filter(dev => dev.id == name.id).length == 0) { }
-        devices.push(name);
-        setDevices([...devices]);
-        console.log('device count' + devices.length);
+    const requestState = async(peripheral: Peripheral) : Promise<boolean> => {
+        if(await ble.connectById(peripheral.id, CHAR_UUID_SYS_CONFIG)) {
+            let sysConfig = await ble.getCharacteristic(peripheral.id, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
+            console.log(sysConfig);            
+            await ble.disconnectById(peripheral.id);
+            return true;
+        }
+        
+        return false;
+    }
+
+    const refresh = async (peripheral: Peripheral) => {
+        if(await requestState(peripheral)) {
+            devices.push(peripheral);
+            setDevices([...devices]);
+        }
     }
 
     const myItemSeparator = () => {
@@ -237,7 +247,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
     }
 
-    const listPage = () => {
+    const foundDevicesListTab = () => {
         return (<FlatList
             contentContainerStyle={{ flex: 1, alignItems: "stretch" }}
             style={{ backgroundColor: 'white', width: "100%" }}
@@ -276,7 +286,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
     const renderTabs = () => {
         if (currentTab === 'home') return reposPage()
-        if (currentTab === 'list') return listPage()
+        if (currentTab === 'list') return foundDevicesListTab()
         if (currentTab === 'notification') return notificationPage()
         if (currentTab === 'profile') return profilePage()
     }

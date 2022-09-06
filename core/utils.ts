@@ -85,26 +85,35 @@ export class HttpClient {
         withCredentials?: boolean;
     }): Promise<T> {
 
+        this.checkJWTExpire();
         let jwt = await this.storage.getItemAsync("jwt");
 
-        options!.method = 'GET';
-        options!.headers! = {Authorization: "Bearer " + jwt};
+        if (!options) {
+            options = {method: 'GET'};
+        }
+
+        options!.headers = { Authorization: "Bearer " + jwt };
         options!.withCredentials = true;
 
-        this.checkJWTExpire();
+        try {
+            let result = await fetch(url, options);
 
-        let result = await fetch(url, options);
-        if (result.status == 401) {
-            console.log('nope')
-            throw 'Not Authorized';
+            if (result.status == 401) {
+                console.log('nope')
+                throw 'Not Authorized';
+            }
+            else {
+
+                let json = await result.json();
+                return json as T
+            }
         }
-        else {
-            let json = await result.json();
-            return json as T
+        catch (e) {
+            throw e;
         }
     };
 
-    put<T>(url: string, body: any | null, options?: {
+    async put<T>(url: string, body: any | null, options?: {
         headers?: HttpHeaders | {
             [header: string]: string | string[];
         };
@@ -116,9 +125,24 @@ export class HttpClient {
         reportProgress?: boolean;
         responseType?: 'json';
         withCredentials?: boolean;
-    }): Observable<T> {
-        return null;
-    };
+    }): Promise<T> {
+
+        this.checkJWTExpire();
+        let jwt = await this.storage.getItemAsync("jwt");
+        var result = await fetch(url, {
+            method: 'PUT',
+            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: "Bearer " + jwt 
+            }
+        });
+
+        console.log('put call result: ' + result.status);
+
+        var json = await result.json();
+        return json as T;
+    }
 
     delete<T>(url: string): Promise<T> {
         return null;
@@ -138,11 +162,14 @@ export class HttpClient {
         withCredentials?: boolean;
     }): Promise<T> {
 
+        this.checkJWTExpire();
+        let jwt = await this.storage.getItemAsync("jwt");
         var result = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(body),
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                Authorization: "Bearer " + jwt 
             }
         });
 

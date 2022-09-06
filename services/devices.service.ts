@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ReplaySubject } from 'rxjs';
 import { DeviceGroupService } from './device-group.service';
 import { NuviotClientService } from './nuviot-client.service';
-
+import {decode as atob, encode as btoa} from 'base-64'
 
 export class DevicesService {
   constructor(private deviceGroupService: DeviceGroupService,
@@ -59,6 +59,8 @@ export class DevicesService {
   }
 
   private deviceSafeInit(device: Devices.DeviceDetail) {
+    console.log()
+
     /* In some cases the data provided by the service may not be valid for use in the app, this method
      * can be used to initialize invalid properties */
     if (!device.primaryAccessKey) {
@@ -76,22 +78,22 @@ export class DevicesService {
     }
   }
 
-  createDevice(deviceRepoId: string): Promise<Devices.DeviceDetail> {
-    const promise = new Promise<Devices.DeviceDetail>((resolve, reject) => {
-      this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(`/api/device/${deviceRepoId}/factory`)
-        .then(response => {
-          this.deviceSafeInit(response.model);
-          resolve(response.model);
-        });
-    });
-
-    return promise;
+  async createDevice(deviceRepoId: string): Promise<Devices.DeviceDetail> {
+      let response = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(`/api/device/${deviceRepoId}/factory`);
+      if(response.successful) {
+        let device = response.model;          
+        this.deviceSafeInit(device);       
+        return device;
+      }
+      else {
+        throw 'could not create device.';
+      }
   }
 
   getDeviceTypes(): Promise<Devices.DeviceTypeSummary[]> {
     const promise = new Promise<Devices.DeviceTypeSummary[]>((resolve, reject) => {
-      this.nuviotClient.request<Core.ListResponse<Devices.DeviceTypeSummary>>(`/api/devicetypes`)
-        .then(resp => resolve(resp.model));
+      this.nuviotClient.getListResponse<Devices.DeviceTypeSummary>(`/api/devicetypes`)
+        .then(resp =>  { resolve(resp.model); })
     });
 
     return promise;
@@ -336,17 +338,8 @@ export class DevicesService {
     return promise;
   }
 
-  public addDevice(device: Devices.DeviceDetail): Promise<Core.InvokeResult> {
-    const promise = new Promise<Core.InvokeResult>((resolve, reject) => {
-      this.nuviotClient.insert(`/api/device/${device.deviceRepository.id}`, device)
-        .then(resp => {
-          this.setDeviceDetail(undefined);
-          resolve(resp);
-        })
-        .catch((err) => reject(err));
-    });
-
-    return promise;
+  public async addDevice(device: Devices.DeviceDetail): Promise<Core.InvokeResult> {
+      return await this.nuviotClient.insert(`/api/device/${device.deviceRepository.id}`, device);        
   }
 
   public addUserDevice(user: Devices.DeviceUser): Promise<Core.InvokeResult> {
@@ -375,21 +368,20 @@ export class DevicesService {
     return promise;
   }
 
-  public updateDevice(device: Devices.DeviceDetail, clearDevice: boolean = true): Promise<Core.InvokeResult> {
-    const promise = new Promise<Core.InvokeResult>((resolve, reject) => {
-      this.nuviotClient.update(`/api/device/${device.deviceRepository.id}`, device)
-        .then(resp => {
-          if (clearDevice) {
-            this.setDeviceDetail(undefined);
-          } else {
-            this.setDeviceDetail(device);
-          }
-          resolve(resp);
-        })
-        .catch((err) => reject(err));
-    });
+  public async updateDevice(device: Devices.DeviceDetail, clearDevice: boolean = true): Promise<Core.InvokeResult> {
+    let response = await this.nuviotClient.update(`/api/device/${device.deviceRepository.id}`, device)
+    
+    console.log(response);
 
-    return promise;
+    if((response).successful) {
+      if (clearDevice) {
+        this.setDeviceDetail(undefined);
+      } else {
+        this.setDeviceDetail(device);
+      }
+    }
+
+    return response;
   }
 
   public addDeviceNote(deviceRepoId: string, deviceId: string, deviceNote: Devices.DeviceNote): Promise<Core.InvokeResult> {

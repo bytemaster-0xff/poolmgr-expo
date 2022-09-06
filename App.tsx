@@ -9,6 +9,7 @@ import { BlePropertiesPage } from './pages/bleproperties.page';
 import { SensorsPage } from './pages/sensors.page';
 import { DevicePage} from './pages/device.page';
 import { TempSensorPage } from './pages/tempSensor.page';
+import ProvisionPage from './pages/provision.page';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,7 @@ const App = () => {
       <Stack.Navigator>
         <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
         <Stack.Screen name="authPage" component={Auth} options={{ title: 'Please Login' }} />
+        <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
         <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home Page' }} />
         <Stack.Screen name="devicePage" component={DevicePage} options={{ title: 'Device' }} />
         <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />

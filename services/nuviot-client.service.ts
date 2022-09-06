@@ -152,7 +152,8 @@ export class NuviotClientService {
     }
     this.networkCallService.beginCall();
     const promise = new Promise<TData>((resolve, reject) => {
-      this.http.get<TData>(`${environment.siteUri}/${path}`)
+      let fullPath = `${environment.siteUri}/${path}`;
+      this.http.get<TData>(fullPath)
         .then((response) => {
           this.networkCallService.endCall();
           resolve(response);
@@ -307,71 +308,18 @@ export class NuviotClientService {
     return promise;
   }
 
-  updateWithResponse<TModel, TResponse>(path: string, model: TModel): Promise<Core.InvokeResultEx<TResponse>> {
+  async updateWithResponse<TModel, TResponse>(path: string, model: TModel): Promise<Core.InvokeResultEx<TResponse>> {
     if (path.startsWith('/')) {
       path = path.substring(1);
     }
 
     this.networkCallService.beginCall();
 
-    const promise = new Promise<Core.InvokeResultEx<TResponse>>((resolve, reject) => {
-      this.http.put<Core.InvokeResultEx<TResponse>>(`${environment.siteUri}/${path}`, model)
-        .subscribe((response) => {
-          this.networkCallService.endCall();
-          if (response.successful) {
-            resolve(response);
-          } else {
-            this.errorReporter.addErrors(response.errors);
-            if (reject) {
-              reject(response.errors[0].message);
-            }
-          }
-        },
-          (err) => {
-            this.networkCallService.endCall();
-
-            this.errorReporter.addMessage(err.message);
-            if (reject) {
-              reject(err.message);
-            }
-          });
-    });
-
-    return promise;
+    return await this.http.put(`${environment.siteUri}/${path}`, model);
   }
 
   update<TModel>(path: string, model: TModel): Promise<Core.InvokeResult> {
-    if (path.startsWith('/')) {
-      path = path.substring(1);
-    }
-
-    this.networkCallService.beginCall();
-
-    const promise = new Promise<Core.InvokeResult>((resolve, reject) => {
-      this.http.put<Core.InvokeResult>(`${environment.siteUri}/${path}`, model)
-        .subscribe((response) => {
-          this.networkCallService.endCall();
-
-          if (response.successful) {
-            resolve(response);
-          } else {
-            this.errorReporter.addErrors(response.errors);
-            if (reject) {
-              reject(response.errors[0].message);
-            }
-          }
-        },
-          (err) => {
-            this.networkCallService.endCall();
-
-            this.errorReporter.addMessage(err.message);
-            if (reject) {
-              reject(err.message);
-            }
-          });
-    });
-
-    return promise;
+    return this.updateWithResponse(path, model);
   }
 
   delete<TModel>(path: string): Promise<Core.InvokeResult> {
