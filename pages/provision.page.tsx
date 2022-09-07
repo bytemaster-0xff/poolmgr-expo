@@ -37,29 +37,33 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
     const loadSysConfigAsync = async () => {
         console.log('loading sys config.');
-        await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG);
-        let sysConfig = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
-        if(sysConfig) {
-            setSysConfig(new SysConfig(sysConfig));
+        if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
+            let sysConfigStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
+            if (sysConfigStr) {
+                let sysConfig = new SysConfig(sysConfigStr);
+                console.log(sysConfigStr);
+                console.log('ORGID -> ' + sysConfig?.orgId);
+                console.log('REPOID -> ' + sysConfig?.repoId);
+                console.log('ID -> ' + sysConfig?.id);
+                setSysConfig(sysConfig);
+            }
+            await ble.disconnectById(peripheralId);
         }
-
-        console.log(sysConfig);
-        await ble.disconnectById(peripheralId);
 
     }
 
     const provisionDevice = async () => {
         let newDevice = await services.deviceServices.createDevice(selectedRepo!.id)
 
-        newDevice.deviceType = {id: selectedDeviceType!.id, key: selectedDeviceType!.key, text: selectedDeviceType!.name};
-        newDevice.deviceConfiguration = {id: selectedDeviceType!.defaultDeviceConfigId!, key: '', text: selectedDeviceType!.defaultDeviceConfigName!};
+        newDevice.deviceType = { id: selectedDeviceType!.id, key: selectedDeviceType!.key, text: selectedDeviceType!.name };
+        newDevice.deviceConfiguration = { id: selectedDeviceType!.defaultDeviceConfigId!, key: '', text: selectedDeviceType!.defaultDeviceConfigName! };
         newDevice.deviceId = deviceId!;
         newDevice.name = deviceName!;
         newDevice.macAddress = peripheralId;
-        
+
         let result = await services.deviceServices.addDevice(newDevice);
         console.log(result);
-        if(result.successful){
+        if (result.successful) {
             if (await ble.connectById(peripheralId)) {
                 await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'deviceid=' + deviceId);
                 await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + newDevice.ownerOrganization.id);
@@ -68,20 +72,20 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
                 await ble.disconnectById(peripheralId);
             }
         }
-        
+
     }
 
-    const init = async() => {
+    const init = async () => {
         await loadReposAsync();
         await loadSysConfigAsync();
     }
 
-    const deviceTypeChanged = async(id: string) => {
-        setSelectedDeviceType(deviceTypes.find(dt=>dt.id == id));
+    const deviceTypeChanged = async (id: string) => {
+        setSelectedDeviceType(deviceTypes.find(dt => dt.id == id));
     }
 
-    const repoChanged = async(id: string)=> {
-        setSelectedRepo(repos.find(rp=>rp.id == id))
+    const repoChanged = async (id: string) => {
+        setSelectedRepo(repos.find(rp => rp.id == id))
     }
 
     useEffect(() => {
@@ -115,7 +119,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
             <TextInput style={styles.inputStyle} placeholder="device name" value={deviceName} onChangeText={e => setDeviceName(e)} />
             <TextInput style={styles.inputStyle} placeholder="device id" value={deviceId} onChangeText={e => setDeviceId(e)} />
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => provisionDevice()}><Text style={styles.submitButtonText}> Reset </Text></TouchableOpacity>
+            <TouchableOpacity style={styles.submitButton} onPress={() => provisionDevice()}><Text style={styles.submitButtonText}> WRITE </Text></TouchableOpacity>
 
             <View>
                 {remoteDeviceState &&

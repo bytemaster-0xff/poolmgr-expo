@@ -8,12 +8,13 @@ import services from '../services/app-services';
 import styles from '../styles';
 import Tabbar from "@mindinventory/react-native-tab-bar-interaction";
 import Icon from "react-native-vector-icons/Ionicons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IReactPageServices } from "../services/react-page-services";
+import { BLENuvIoTDevice } from "../models/device/device-local";
+import { SysConfig } from "../models/blemodels/sysconfig";
 
 export default function ScanPage({ navigation }: IReactPageServices) {
     const [currentTab, setCurrentTab] = useState<string>("home");
-    const [devices, setDevices] = useState<Peripheral[]>([]);
+    const [devices, setDevices] = useState<BLENuvIoTDevice[]>([]);
     const [isScanning, setIsScanning] = useState<boolean>(false);
     const [repos, setRepos] = useState<Devices.DeviceRepoSummary[] | undefined>()
     const [initialCall, setInitialCall] = useState<boolean>(true);
@@ -41,8 +42,6 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         },
 
     ];
-
-    
 
     const loadRepos = async () => {
         console.log('loading repos.');
@@ -122,8 +121,8 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         }
     }
 
-    const showDevice = async (peripheral: Peripheral) => {
-        navigation.navigate('provisionPage', { id: peripheral.id });
+    const showDevice = async (peripheral: BLENuvIoTDevice) => {
+        navigation.navigate('provisionPage', { id: peripheral.peripheralId });
     }
 
     const clear = async () => {
@@ -132,11 +131,6 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         setDevices(devices => []);
         console.log('cleared...');
         console.log('new device count' + devices.length);
-    }
-
-    const loadJWT = async () => {
-        let jwt = await AsyncStorage.getItem("jwt");
-        console.log(jwt);
     }
 
     useEffect(() => {
@@ -158,10 +152,10 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
             ble.emitter.removeAllListeners('connected');
             ble.emitter.removeAllListeners('scanning');
-            ble.emitter.addListener('connected', (device) => refresh(device))
+
+            ble.emitter.addListener('connected', (device) => discovered(device))
             ble.emitter.addListener('scanning', (isScanning) => {
                 setIsScanning(isScanning);
-                console.log('setting scanning' + isScanning);
             });
 
             if (Platform.OS === 'android' && Platform.Version >= 23) {
@@ -199,21 +193,31 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         navigation.replace('authPage');
     }
 
-    const requestState = async(peripheral: Peripheral) : Promise<boolean> => {
-        if(await ble.connectById(peripheral.id, CHAR_UUID_SYS_CONFIG)) {
-            let sysConfig = await ble.getCharacteristic(peripheral.id, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
-            console.log(sysConfig);            
-            await ble.disconnectById(peripheral.id);
-            return true;
-        }
-        
-        return false;
-    }
+    const discovered = async (peripheral: Peripheral) => {
+        if (await ble.connectById(peripheral.id, CHAR_UUID_SYS_CONFIG)) {
+            let sysConfigStr = await ble.getCharacteristic(peripheral.id, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
+            if (sysConfigStr) {
+                console.log(sysConfigStr);
 
-    const refresh = async (peripheral: Peripheral) => {
-        if(await requestState(peripheral)) {
-            devices.push(peripheral);
-            setDevices([...devices]);
+                let sysConfig = new SysConfig(sysConfigStr);
+
+                let device: BLENuvIoTDevice = {
+                    peripheralId: peripheral.id,
+                    name: peripheral.name!,
+                    provisioned: false,
+                    orgId: sysConfig.orgId,
+                    repoId: sysConfig.repoId,
+                    id: sysConfig.id
+                }
+
+                if(sysConfig.id && sysConfig.id.length > 0)
+                    device.provisioned = true;
+
+                devices.push(device);
+                //setDevices([...devices]);
+            }
+
+            await ble.disconnectById(peripheral.id);
         }
     }
 
@@ -259,7 +263,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                     <View style={[styles.listRow, { padding: 10, height: 90, }]} key={item.id}>
                         <View style={{ flex: 4 }}>
                             <Text style={[{ color: 'gray', flex: 3 }]}>{item.name}</Text>
-                            <Text style={[{ color: 'gray', flex: 3 }]}>Test</Text>
+                            {item.provisioned && <Text>{item.provisioned.toString()}</Text>}
                         </View>
                     </View>
                 </Pressable>

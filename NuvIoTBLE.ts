@@ -197,7 +197,7 @@ export class NuvIoTBLE {
         }
 
         ble.peripherals.push(peripheral);
-        console.log('added - ' + peripheral.name);
+        console.log('added - ' + peripheral.name + ' ' + peripheral.id);
         ble.emitter.emit('connected', peripheral);
       }
         , 1000)
@@ -339,22 +339,18 @@ export class NuvIoTBLE {
         return true;
       }
       else {
-        console.log('Attempt to connect ' + id);
         try {
           await BleManager.connect(id);
-          console.log('getting services');
           let services = await BleManager.retrieveServices(id);
           await BleManager.requestMTU(id, 512);
 
           if(characteristicId) {
             for(let chr of services.characteristics){
               if(chr.characteristic == characteristicId) {
-                console.log('found device with characteristic');
                 return true;
               }
             }
 
-            console.log('characteristic id not found for device, disconnecting');
             await this.disconnectById(id);
             return false;
           }
@@ -363,8 +359,7 @@ export class NuvIoTBLE {
           return true;
         }
         catch (e) {
-          console.log(e);
-          console.log('could not connect');
+          console.log('could not connect - ' + e + ' id=' + id);
           return false;
         }
       }
@@ -384,10 +379,8 @@ export class NuvIoTBLE {
         return true;
       }
       else {
-        console.log('Attempt to connect ' + id);
         try {
           await BleManager.disconnect(id, true);
-          console.log('disconnected');
           return true;
         }
         catch (e) {
@@ -405,12 +398,10 @@ export class NuvIoTBLE {
       return;
     }
 
-    console.log('device was discovered');
-
     if (peripheral.name) {
-      if (!this.peripherals.find(flt => flt.id === (peripheral.id))) {
+      if (!ble.peripherals.find(flt => flt.id === (peripheral.id))) {
         ble.peripherals.push(peripheral);
-        console.log('added');
+        console.log('added -> ' + peripheral.name + ' - ' + peripheral.id);
         ble.emitter.emit('connected', peripheral);
       }
     }
