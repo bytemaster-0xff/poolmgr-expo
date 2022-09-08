@@ -49,7 +49,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
             }
             await ble.disconnectById(peripheralId);
         }
-
     }
 
     const provisionDevice = async () => {
