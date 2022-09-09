@@ -51,6 +51,16 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
         }
     }
 
+    const factoryReset = async() => {
+        if (await ble.connectById(peripheralId)) {
+            await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);
+            await ble.disconnectById(peripheralId);
+        }
+        else {
+            console.warn('could not connect');
+        }
+    }
+
     const provisionDevice = async () => {
         let newDevice = await services.deviceServices.createDevice(selectedRepo!.id)
 
@@ -119,6 +129,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
             <TextInput style={styles.inputStyle} placeholder="device id" value={deviceId} onChangeText={e => setDeviceId(e)} />
 
             <TouchableOpacity style={styles.submitButton} onPress={() => provisionDevice()}><Text style={styles.submitButtonText}> WRITE </Text></TouchableOpacity>
+            <TouchableOpacity style={styles.submitButton} onPress={() => factoryReset()}><Text style={styles.submitButtonText}> FACTORY RESET </Text></TouchableOpacity>
 
             <View>
                 {remoteDeviceState &&

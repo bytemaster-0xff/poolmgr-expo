@@ -117,6 +117,16 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
         }
     }
 
+    if (!initialCall) {
+        setDeviceAddress(peripheralId);
+        console.log('>>>>initial setup<<<< -> ' + peripheralId);
+        setInitialCall(true);
+
+        if (peripheralId) {
+            getDeviceProperties(peripheralId);
+        }
+    }
+
     const portChanged = async (port: string) => {        
         setValue(port);
         
@@ -146,16 +156,6 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
         }
     }
 
-    React.useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-              <View style={{ flexDirection: 'row' }} >
-              <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => setHandler('save')} name='save' />
-          </View>),
-          });        
-      }, []);
-
-
     useEffect(() => {
         switch(handler) {
             case 'save': writeChar(); 
@@ -163,22 +163,19 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             break;
         }        
 
+        navigation.setOptions({
+            headerRight: () => (
+              <View style={{ flexDirection: 'row' }} >
+              <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => setHandler('save')} name='save' />
+          </View>),
+          });      
+
         return (() => {
             console.log('Leaving sensors page.');
             ble.emitter.removeAllListeners('receive');
             ble.unsubscribe();
         })
     }, [handler]);
-
-    if (!initialCall) {
-        setDeviceAddress(peripheralId);
-        console.log('>>>>initial setup<<<< -> ' + peripheralId);
-        setInitialCall(true);
-
-        if (peripheralId) {
-            getDeviceProperties(peripheralId);
-        }
-    }
 
     return (
         <View style={styles.scrollContainer}>

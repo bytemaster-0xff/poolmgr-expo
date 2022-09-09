@@ -4,9 +4,10 @@ import { StatusBar } from 'expo-status-bar';
 import styles from '../styles';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { IReactPageServices } from "../services/react-page-services";
 
 
-export default function SplashPage({ navigation }) {
+export default function SplashPage({ navigation } : IReactPageServices ) {
 
     const login = async () => {
         navigation.replace('authPage');

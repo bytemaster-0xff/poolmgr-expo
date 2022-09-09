@@ -134,7 +134,7 @@ export class NuvIoTBLE {
   subscribe(ble: NuvIoTBLE) {
     if (ble == null) {
       throw 'BLE is null, requires instance of BLE manager for subscription.'
-    }    
+    }
 
     bleManagerEmitter.removeAllListeners('BleManagerDiscoverPeripheral');
     bleManagerEmitter.removeAllListeners('BleManagerStopScan');
@@ -147,9 +147,9 @@ export class NuvIoTBLE {
     this.subs.push(bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', ({ value, peripheral, characteristic, service }) => {
       // Convert bytes array to string
       const buffer = Buffer.from(value);
-        
+
       const decodedValue = buffer.toString();
-      ble.emitter.emit('receive', {characteristic: characteristic, value: decodedValue});
+      ble.emitter.emit('receive', { characteristic: characteristic, value: decodedValue });
     }));
 
     console.log('subscription added, subscription count => ' + this.subs.length);
@@ -213,11 +213,10 @@ export class NuvIoTBLE {
       if (!this.isScanning) {
         BleManager.checkState();
         console.log('We are starting to scan');
-        BleManager.scan([], 5, false)
+        BleManager.scan([SVC_UUID_NUVIOT], 5, false)
           .then((res) => {
             console.log('scanning started.');
             this.setIsScanning(true);
-
           })
           .catch((err) => {
             console.log('error');
@@ -225,6 +224,10 @@ export class NuvIoTBLE {
           });
       }
     }
+  }
+
+  stopScan() {
+    BleManager.stopScan();
   }
 
   handleUpdateValueForCharacteristic(data: any) {
@@ -292,11 +295,11 @@ export class NuvIoTBLE {
     }
   }
 
-  string2Bin(str: string) :   number[] {
+  string2Bin(str: string): number[] {
     const bytes = [];
     for (let ii = 0; ii < str.length; ii++) {
       const code = str.charCodeAt(ii); // x00-xFFFF
-        bytes.push(code & 255); // low, high
+      bytes.push(code & 255); // low, high
     }
     return bytes;
   }
@@ -308,7 +311,9 @@ export class NuvIoTBLE {
     else {
       try {
         let result = await BleManager.read(id, serviceId, characteristicId);
+        console.log("BLEManager__readCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
         let responseStr = this.bin2String(result);
+        console.log("BLEManager__readCharacteristic: failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
         return responseStr
       }
       catch (e) {
@@ -318,56 +323,67 @@ export class NuvIoTBLE {
     }
   }
 
-  async writeCharacteristic(id: string, serviceId: string, characteristicId: string, value: string): Promise<boolean>{
-    try
-    {
+  async writeCharacteristic(id: string, serviceId: string, characteristicId: string, value: string): Promise<boolean> {
+    try {
       let buffer = this.string2Bin(value);
-      let result = await BleManager.write(id, serviceId, characteristicId, buffer, 255);
+      await BleManager.write(id, serviceId, characteristicId, buffer, 255);
+      console.log("BLEManager__writeCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
       return true;
     }
-    catch(e) {
-      console.log('exception: ', e);
+    catch (e) {
+      console.log("BLEManager__writeCharacteristic: failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
       return false;
     }
   }
 
   async connectById(id: string, characteristicId: string | undefined = undefined): Promise<boolean> {
-    if (this.simulatedBLE()) {
-      return true;
-    }
-    else {
-      let result = await BleManager.isPeripheralConnected(id)
-      if (result) {
-        console.log('already connected.');
-        let resetResult = await BleManager.requestMTU(id, 512);
+    let retryCount = 5;
+    while (true) {
+      if (this.simulatedBLE()) {
         return true;
       }
       else {
-        try {
-          await BleManager.connect(id);
-          let services = await BleManager.retrieveServices(id);
-          await BleManager.requestMTU(id, 512);
-
-          if(characteristicId) {
-            for(let chr of services.characteristics){
-              if(chr.characteristic == characteristicId) {
-                return true;
-              }
-            }
-
-            await this.disconnectById(id);
-            return false;
-          }
-                  
-          console.log('connected independent of characteristic id.');
+        let result = await BleManager.isPeripheralConnected(id)
+        if (result) {
+          console.log('BLEManager__connectById: already connected, id=' + id);
+          let resetResult = await BleManager.requestMTU(id, 512);
           return true;
         }
-        catch (e) {
-          console.log('could not connect - ' + e + ' id=' + id);
-          return false;
+        else {
+          try {
+            console.log('BLEManager__connectById: Connect, id=' + id);
+            await BleManager.connect(id);
+
+            let services = await BleManager.retrieveServices(id);
+            await BleManager.requestMTU(id, 512);
+
+            if (characteristicId) {
+              console.log('BLEManager__connectById: Connected, id=' + id);
+              for (let chr of services.characteristics) {
+                if (chr.characteristic == characteristicId) {
+                  console.log('BLEManager__connectById: Connected to NuvIoT Device, id=' + id);
+                  return true;
+                }
+              }
+
+              console.log('BLEManager__connectById: Not NuvIoT Device, id=' + id);
+              await this.disconnectById(id);
+              return false;
+            }
+
+            console.log('BLEManager__connectById: Connected, not checking for service, id=' + id);            
+            return true;
+          }
+          catch (e) {
+            console.log('BLEManager__connectById: Error - ' + e + ' id=' + id + ' retry count ' + retryCount);
+            if(retryCount-- == 0)
+              return false;
+          }
         }
       }
     }
+
+    return false;
   }
 
   async disconnectById(id: string): Promise<boolean> {
@@ -377,17 +393,17 @@ export class NuvIoTBLE {
     else {
       let result = await BleManager.isPeripheralConnected(id)
       if (!result) {
-        console.log('device is not connected.');
+        console.log("BLEManager__disconnectById: not connected.");
         return true;
       }
       else {
         try {
           await BleManager.disconnect(id, true);
+          console.log("BLEManager__disconnectById: success, id = " + id);
           return true;
         }
         catch (e) {
-          console.log('could not disconnect');
-          console.log(e);
+          console.log("BLEManager__disconnectById: error, id = " + id + "," + e);
           return false;
         }
       }

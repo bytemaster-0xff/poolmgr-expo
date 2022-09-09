@@ -18,13 +18,11 @@ export class HttpClient {
 
     }
 
-
     getAuthHeaders(): any {
 
     }
 
     async checkJWTExpire(): Promise<boolean> {
-
         let jwt = await this.storage.getItemAsync('jwtExpires');
         if (jwt) {
             let date = new Date(jwt);

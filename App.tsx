@@ -11,6 +11,8 @@ import { DevicePage} from './pages/device.page';
 import { TempSensorPage } from './pages/tempSensor.page';
 import ProvisionPage from './pages/provision.page';
 import { ConfigureDevicePage } from './pages/configureDevice.page';
+import ScanPage from './pages/scan.page';
+import AccountPage from './pages/account.page';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +25,8 @@ const App = () => {
         <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
         <Stack.Screen name="configureDevice" component={ConfigureDevicePage} options={{ title: 'Configure Device' }} />
         <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home Page' }} />
+        <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'My Account Page' }} />
+        <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan Page' }} />
         <Stack.Screen name="devicePage" component={DevicePage} options={{ title: 'Device' }} />
         <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />
         <Stack.Screen name="settingsPage" component={ConnectivityPage} options={{ title: 'Settings' }} />
