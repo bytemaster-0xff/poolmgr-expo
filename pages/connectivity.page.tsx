@@ -11,18 +11,12 @@ import { IReactPageServices } from "../services/react-page-services";
 
 
 export const ConnectivityPage = ({ props, navigation, route }: IReactPageServices) => {
-    console.log('METHOD FUNCTION CALLED.');
-
     const peripheralId = route.params.id;
-
-    console.log(route.params.id);
-
-    const [initialCall, setInitialCall] = useState<boolean>(false);
+    const [initialCall, setInitialCall] = useState<boolean>(true);
 
     const [deviceId, setDeviceId] = useState<string>();
     const [serverUrl, setServerUrl] = useState<string>();
     const [port, setPort] = useState<string>();
-
 
     const [wifiSSID, setWiFiSSID] = useState<string>();
     const [wifiPWD, setWiFiPWD] = useState<string>();
@@ -98,11 +92,9 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
 
     useEffect(() => {
-        console.log('USE eFFECT CALLED Getting connectivity settings for:', peripheralId);
-        
         switch(handler) {
             case 'save': writeChar(); 
-            setHandler(undefined);
+                setHandler(undefined);
             break;
         }
 
@@ -111,9 +103,8 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
         });
     }, [handler]);
 
-    if(!initialCall){
-        console.log('>>>>initial setup<<<<');
-        setInitialCall(true);
+    if(initialCall){
+        setInitialCall(false);
 
         if (peripheralId) {
             getData();

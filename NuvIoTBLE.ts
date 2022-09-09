@@ -117,16 +117,16 @@ export class NuvIoTBLE {
 
   constructor() {
     this.emitter = new NativeEventEmitter();
-    console.log("BLE Startup - Constructor");
+    console.log("BLE Manager Startup - Constructor");
     console.log("OS " + Platform.OS);
 
     if (Platform.OS !== 'web') {
       BleManager.start({ showAlert: true })
         .then(() => {
-          console.log('start was successfully called');
+          console.log('BLE Manager Startup - Success');
         })
         .catch((err: any) => {
-          console.log('we got error: ', err);
+          console.log('BLE Manager Startup - Error - ', err);
         });
     }
   }
@@ -156,10 +156,12 @@ export class NuvIoTBLE {
   }
 
   unsubscribe() {
-    for (let subscription of this.subs) {
-      console.log('unsubscribe: ');
-      subscription.remove();
-    }
+    bleManagerEmitter.removeAllListeners('BleManagerDiscoverPeripheral');
+    bleManagerEmitter.removeAllListeners('BleManagerStopScan');
+    bleManagerEmitter.removeAllListeners('BleManagerDisconnectPeripheral');
+    bleManagerEmitter.removeAllListeners('BleManagerDidUpdateValueForCharacteristic');
+
+    this.subs = [];
   }
 
   isScanning = false;
@@ -316,14 +318,16 @@ export class NuvIoTBLE {
     }
   }
 
-  async writeCharacteristic(id: string, serviceId: string, characteristicId: string, value: string) {
+  async writeCharacteristic(id: string, serviceId: string, characteristicId: string, value: string): Promise<boolean>{
     try
     {
       let buffer = this.string2Bin(value);
       let result = await BleManager.write(id, serviceId, characteristicId, buffer, 255);
+      return true;
     }
     catch(e) {
       console.log('exception: ', e);
+      return false;
     }
   }
 
@@ -363,8 +367,6 @@ export class NuvIoTBLE {
           return false;
         }
       }
-
-
     }
   }
 
@@ -410,4 +412,3 @@ export class NuvIoTBLE {
 
 export let ble = new NuvIoTBLE();
 ble.subscribe(ble);
-console.log('we created our class that will likely be reused.');

@@ -58,6 +58,7 @@ export class HttpClient {
                         await AsyncStorage.setItem("refreshtoken", result.result.refreshToken);
                         await AsyncStorage.setItem("refreshtokenExpires", result.result.refreshTokenExpiresUTC);
                         await AsyncStorage.setItem("jwtExpires", result.result.accessTokenExpiresUTC);
+                        console.log('refreshed with new JWT');
                         return true;
                     })
                     .catch((err: any) => {

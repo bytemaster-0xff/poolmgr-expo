@@ -5,5 +5,6 @@ export interface BLENuvIoTDevice {
     
     orgId?: string;
     repoId?: string;
-    id?: string;
+    deviceUniqueId?: string;
+    id: number;
 }

@@ -122,7 +122,10 @@ export default function ScanPage({ navigation }: IReactPageServices) {
     }
 
     const showDevice = async (peripheral: BLENuvIoTDevice) => {
-        navigation.navigate('provisionPage', { id: peripheral.peripheralId });
+        if(peripheral.provisioned)
+            navigation.navigate('devicePage', { id: peripheral.peripheralId });
+        else
+            navigation.navigate('provisionPage', { id: peripheral.peripheralId });
     }
 
     const clear = async () => {
@@ -178,10 +181,6 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         }
 
         return (() => {
-            console.log("--------------------------------");
-            console.log("----------------");
-            console.log('unsubscribe called.');
-            ble.unsubscribe();
         });
     }, []);
 
@@ -207,14 +206,17 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                     provisioned: false,
                     orgId: sysConfig.orgId,
                     repoId: sysConfig.repoId,
-                    id: sysConfig.id
+                    deviceUniqueId: sysConfig.id,
+                    id: devices.length
                 }
 
                 if(sysConfig.id && sysConfig.id.length > 0)
                     device.provisioned = true;
 
                 devices.push(device);
-                //setDevices([...devices]);
+                console.log('found and added device to devices')
+                console.log(devices);
+                setDevices([...devices]);
             }
 
             await ble.disconnectById(peripheral.id);
@@ -259,12 +261,14 @@ export default function ScanPage({ navigation }: IReactPageServices) {
             ListEmptyComponent={myListEmpty}
             data={devices}
             renderItem={({ item }) =>
-                <Pressable onPress={() => showDevice(item)}>
-                    <View style={[styles.listRow, { padding: 10, height: 90, }]} key={item.id}>
-                        <View style={{ flex: 4 }}>
-                            <Text style={[{ color: 'gray', flex: 3 }]}>{item.name}</Text>
-                            {item.provisioned && <Text>{item.provisioned.toString()}</Text>}
+                <Pressable onPress={() => showDevice(item)} key={item.peripheralId} >
+                    <View style={[styles.listRow, { padding: 10, height: 90, }]}  >
+                        <View style={{ flex: 4 }} key={item.peripheralId}>
+                            <Text style={[{ color: 'black', flex: 3 }]}>{item.name}</Text>                                                        
                         </View>
+                        <Text style={[{ color: 'black', flex: 3 }]}>{item.peripheralId}</Text>                                                        
+                            {item.provisioned && <Icon  color="green"  name='hardware-chip-outline' size={24}/>}
+                            {!item.provisioned && <Icon  color="green"  name='add-circle-outline'  size={24}/>}
                     </View>
                 </Pressable>
             } />);
@@ -309,7 +313,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                 tabBarContainerBackground='#6699ff'
                 tabBarBackground='#fff'
                 activeTabBackground='#6699ff'
-                labelStyle={{ color: '#4d4d4d', fontWeight: '600', fontSize: 11 }}
+                labelStyle={{ color: '#4d4d4d', fontWeight: '600', fontSize: 10 }}
                 onTabChange={(tab) => tabChanged(tab)}
             />
         </View>
