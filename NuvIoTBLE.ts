@@ -111,22 +111,25 @@ const CHAR_UUID_CONSOLE = "d804b639-6ce7-5e88-9f88-ce0f699085eb"
    */
 
 export class NuvIoTBLE {
-  subs: EmitterSubscription[] = [];
+  isScanning = false;
 
+  startupTimeStamp: Date = new Date();
+
+  peripherals: Peripheral[] = [];
   public emitter: NativeEventEmitter;
 
   constructor() {
     this.emitter = new NativeEventEmitter();
-    console.log("BLE Manager Startup - Constructor");
+    console.log("BLEManager__Constructor");
     console.log("OS " + Platform.OS);
 
     if (Platform.OS !== 'web') {
       BleManager.start({ showAlert: true })
         .then(() => {
-          console.log('BLE Manager Startup - Success');
+          console.log('BLEManager__Startup: Success');
         })
         .catch((err: any) => {
-          console.log('BLE Manager Startup - Error - ', err);
+          console.log('BLEManager__Startup: Error: ', err);
         });
     }
   }
@@ -140,19 +143,18 @@ export class NuvIoTBLE {
     bleManagerEmitter.removeAllListeners('BleManagerStopScan');
     bleManagerEmitter.removeAllListeners('BleManagerDisconnectPeripheral');
     bleManagerEmitter.removeAllListeners('BleManagerDidUpdateValueForCharacteristic');
-    this.subs = [];
-    this.subs.push(bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral: Peripheral) => this.handleDiscoverPeripheral(ble, peripheral)));
-    this.subs.push(bleManagerEmitter.addListener('BleManagerStopScan', () => this.handleStopScan(ble)));
-    this.subs.push(bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', (peripheral: Peripheral) => this.handleDisconnectedPeripheral(ble, peripheral)));
-    this.subs.push(bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', ({ value, peripheral, characteristic, service }) => {
+
+    bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral: Peripheral) => this.handleDiscoverPeripheral(ble, peripheral));
+    bleManagerEmitter.addListener('BleManagerStopScan', () => this.handleStopScan(ble));
+    bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', (peripheral: Peripheral) => this.handleDisconnectedPeripheral(ble, peripheral));
+    bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', ({ value, peripheral, characteristic, service }) => {
       // Convert bytes array to string
       const buffer = Buffer.from(value);
-
       const decodedValue = buffer.toString();
       ble.emitter.emit('receive', { characteristic: characteristic, value: decodedValue });
-    }));
+    });
 
-    console.log('subscription added, subscription count => ' + this.subs.length);
+    console.log('BLEManager__subscribe - subscribed to native events: DiscoverPeripheral, StopScan, DisconnectPeripheral, DidUpdateValueForCharacteristic');
   }
 
   unsubscribe() {
@@ -160,17 +162,12 @@ export class NuvIoTBLE {
     bleManagerEmitter.removeAllListeners('BleManagerStopScan');
     bleManagerEmitter.removeAllListeners('BleManagerDisconnectPeripheral');
     bleManagerEmitter.removeAllListeners('BleManagerDidUpdateValueForCharacteristic');
-
-    this.subs = [];
+    console.log('BLEManager__unsubscribe - subscribed to native events: DiscoverPeripheral, StopScan, DisconnectPeripheral, DidUpdateValueForCharacteristic');
   }
-
-  isScanning = false;
-
-  peripherals: Peripheral[] = [];
 
   setIsScanning(value: boolean) {
     this.isScanning = value;
-    console.log('set scanning ' + value);
+    console.log('BLEManager__setIsScanning: ' + value);
     this.emitter.emit('scanning', value);
   }
 
@@ -179,10 +176,32 @@ export class NuvIoTBLE {
     // return true;
   }
 
-  async listenForNotifications(deviceId: string, serviceId: string, characteristicId: string) {
-    console.log('Subscribe to characteristic ' + characteristicId);
-    await BleManager.startNotification(deviceId, serviceId, characteristicId);
-    console.log('Subscribed to characteristic ' + characteristicId);
+  async listenForNotifications(deviceId: string, serviceId: string, characteristicId: string) : Promise<boolean> {
+    console.log('BLEManager__listenForNotifications, char=' + characteristicId);
+    try
+    {
+      await BleManager.startNotification(deviceId, serviceId, characteristicId);
+      console.log('BLEManager__listenForNotifications started, char=' + characteristicId);
+      return true;
+    }
+    catch(e){
+      console.log('BLEManager__listenForNotifications could not start, char=' + characteristicId + ", err=" + e);
+      return false;
+    }
+  }
+
+  async stopListeningForNotifications(deviceId: string, serviceId: string, characteristicId: string) : Promise<boolean> {
+    console.log('BLEManager_stopListeningForNotifications, char=' + characteristicId);
+    try
+    {
+      await BleManager.stopNotification(deviceId, serviceId, characteristicId);
+      console.log('BLEManager__stopListeningForNotifications started, char=' + characteristicId);
+      return true;
+    }
+    catch(e){
+      console.log('BLEManager__stopListeningForNotifications could not stop listening, char=' + characteristicId + ", err=" + e);
+      return false;
+    }
   }
 
   async startScan() {
@@ -251,6 +270,7 @@ export class NuvIoTBLE {
       //peripherals.set(peripheral.id, peripheral);
       //setList(Array.from(peripherals.values()));
     }
+    this.emitter.emit('disconnected', data.peripheral.id)
     console.log('Disconnected from ' + data.peripheral);
   }
 
@@ -311,13 +331,12 @@ export class NuvIoTBLE {
     else {
       try {
         let result = await BleManager.read(id, serviceId, characteristicId);
-        console.log("BLEManager__readCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
         let responseStr = this.bin2String(result);
-        console.log("BLEManager__readCharacteristic: failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
+        console.log("BLEManager__readCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
         return responseStr
       }
       catch (e) {
-        console.log('ERROR GET response', e);
+        console.log("BLEManager__readCharacteristic: failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
         return null;
       }
     }
@@ -336,9 +355,28 @@ export class NuvIoTBLE {
     }
   }
 
+  async writeNoResponseCharacteristic(id: string, serviceId: string, characteristicId: string, value: string): Promise<boolean> {
+    try {
+      let buffer = this.string2Bin(value);
+      await BleManager.writeWithoutResponse(id, serviceId, characteristicId, buffer, 255);
+      console.log("BLEManager__writeNoResponseCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
+      return true;
+    }
+    catch (e) {
+      console.log("BLEManager__writeNoResponseCharacteristic: failure, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
+      return false;
+    }
+  }
+
+  _cancelConnect: boolean = false;
+
+  cancelConnect() {
+    this._cancelConnect = true;
+  }
+
   async connectById(id: string, characteristicId: string | undefined = undefined): Promise<boolean> {
     let retryCount = 5;
-    while (true) {
+    while (!this._cancelConnect) {
       if (this.simulatedBLE()) {
         return true;
       }
@@ -382,6 +420,10 @@ export class NuvIoTBLE {
         }
       }
     }
+
+    console.log('BLEManager__connectById: Connection Attempt Cancelled');
+
+    this._cancelConnect = false;
 
     return false;
   }

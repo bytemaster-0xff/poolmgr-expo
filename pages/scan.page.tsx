@@ -87,9 +87,14 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
                     let sysConfig = new SysConfig(sysConfigStr);
 
+                    let name = sysConfig.deviceId;
+                    if(!name || name == '')
+                        name = peripheral.name!;
+
                     let device: BLENuvIoTDevice = {
                         peripheralId: peripheral.id,
-                        name: peripheral.name!,
+                        name: name,
+                        deviceType: sysConfig.deviceModelId,
                         provisioned: false,
                         orgId: sysConfig.orgId,
                         repoId: sysConfig.repoId,
@@ -185,16 +190,14 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         });
 
         const focusSubscription = navigation.addListener('focus', () => {
-            console.log('I GOT ME FOCUS ON FORM');
+            
         });
 
         const blurSubscription = navigation.addListener('beforeRemove', () => {
             stopScanning();
         });
 
-
         return (() => {
-            //backHandler.remove();
             focusSubscription();
             blurSubscription();
         });
@@ -220,9 +223,9 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         <View style={[styles.container, { backgroundColor: 'white' }]}>
             {isScanning &&
                 <View style={{alignSelf: "stretch", backgroundColor: 'navyblue'}}>
-                    <Text>Please Wait - Scanning Now Longer box is Longer</Text>
+                    <Text style={{flex:1 }}>Please Wait - Scanning</Text>
                     <View style={{ flex: 1, backgroundColor: "brown" }} />
-                    <View style={{ backgroundColor: "yellow", flexDirection: 'row' }} >
+                    <View style={{ flex:1, backgroundColor: "yellow", flexDirection: 'row' }} >
                         <View style={{ flex:1, backgroundColor: "red" }} />
                         <View style={{ flex:1}} >
                             <ActivityIndicator size="large" color="#00ff00" animating={isScanning} />
@@ -245,6 +248,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                             <View style={[styles.listRow, { padding: 10, height: 90, }]}  >
                                 <View style={{ flex: 4 }} key={item.peripheralId}>
                                     <Text style={[{ color: 'black', flex: 3 }]}>{item.name}</Text>
+                                    <Text style={[{ color: 'black', flex: 3 }]}>{item.deviceType}</Text>
                                 </View>
                                 <Text style={[{ color: 'black', flex: 3 }]}>{item.peripheralId}</Text>
                                 {item.provisioned && <Icon color="green" name='hardware-chip-outline' size={24} />}

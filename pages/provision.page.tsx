@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { IReactPageServices } from "../services/react-page-services";
 import { TouchableOpacity, ScrollView, View, Text, TextInput } from "react-native";
 import { RemoteDeviceState } from "../models/blemodels/state";
+import Icon from "react-native-vector-icons/Ionicons";
 import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import styles from '../styles';
 import { Picker } from '@react-native-picker/picker';
@@ -63,7 +64,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
     const provisionDevice = async () => {
         let newDevice = await services.deviceServices.createDevice(selectedRepo!.id)
-
+        console.log(deviceName, deviceId);
         newDevice.deviceType = { id: selectedDeviceType!.id, key: selectedDeviceType!.key, text: selectedDeviceType!.name };
         newDevice.deviceConfiguration = { id: selectedDeviceType!.defaultDeviceConfigId!, key: '', text: selectedDeviceType!.defaultDeviceConfigName! };
         newDevice.deviceId = deviceId!;
@@ -78,10 +79,11 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
                 await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + newDevice.ownerOrganization.id);
                 await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'repoid=' + newDevice.deviceRepository.id);
                 await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'id=' + newDevice.id);
+                await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'reboot=1');
+
                 await ble.disconnectById(peripheralId);
             }
         }
-
     }
 
     const init = async () => {
@@ -103,14 +105,18 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
             setInitialCall(false);
         }
 
-        return (() => {
-            console.log("--------------------------------");
-            console.log("----------------");
-            console.log('unsubscribe called.');
-            ble.unsubscribe();
+        navigation.setOptions({
+            headerRight: () => (
+                <View style={{ flexDirection: 'row' }} >
+                    <Icon.Button backgroundColor="transparent" underlayColor="transparent" color="navy" onPress={() => provisionDevice()} name='save' />
+                </View>
+            ),
         });
 
-    }, []);
+        return (() => {           
+        });
+
+    });
 
     return (
         <View style={styles.scrollContainer}>
@@ -128,9 +134,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
             <TextInput style={styles.inputStyle} placeholder="device name" value={deviceName} onChangeText={e => setDeviceName(e)} />
             <TextInput style={styles.inputStyle} placeholder="device id" value={deviceId} onChangeText={e => setDeviceId(e)} />
 
-            <TouchableOpacity style={styles.submitButton} onPress={() => provisionDevice()}><Text style={styles.submitButtonText}> WRITE </Text></TouchableOpacity>
             <TouchableOpacity style={styles.submitButton} onPress={() => factoryReset()}><Text style={styles.submitButtonText}> FACTORY RESET </Text></TouchableOpacity>
-
             <View>
                 {remoteDeviceState &&
                     <View>

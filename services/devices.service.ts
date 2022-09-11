@@ -1,3 +1,4 @@
+import { InvokeResult } from './../models/core/core';
 import { Observable } from 'rxjs';
 
 import { ReplaySubject } from 'rxjs';
@@ -427,6 +428,10 @@ export class DevicesService {
 
   createDeviceSensor() : Promise<Core.FormResult<Devices.Sensor, Devices.SensorView>> {
     return this.nuviotClient.getFormResponse("/api/device/sensor/factory");
+  }
+
+  setDeviceSensor(repoid: string, id: string, sensor: Devices.Sensor) : Promise<InvokeResult> {
+    return this.nuviotClient.post(`/api/device/{repoid}/${id}/sensor`, sensor);
   }
 
   onDeviceNotificationSubscription(): Observable<Core.Notification> {

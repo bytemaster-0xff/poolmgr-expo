@@ -1,19 +1,26 @@
 export class IOValues {
-    constructor(str: string){
+    constructor(str: string) {
         this.adcValues = [];
         this.ioValues = [];
-        
-console.log(str);
 
         let parts = str.split(',');
-        for(let idx = 0; idx < 8; ++idx){
-            this.ioValues.push(parseFloat(parts[idx]));
+        for (let idx = 0; idx < 8; ++idx) {
+            let value = parts[idx];
+            if (value)
+                this.adcValues.push(parseFloat(value));
+            else
+                this.adcValues.push(undefined);
         }
-        for(let idx = 8; idx < 16; ++idx){
-            this.adcValues.push(parseFloat(parts[idx]));
+
+        for (let idx = 8; idx < 16; ++idx) {
+            let value = parts[idx];
+            if (value)
+                this.ioValues.push(parseFloat(value));
+            else
+                this.ioValues.push(undefined);
         }
     };
 
-    adcValues: number[];
-    ioValues: number[];
+    adcValues: (number | undefined)[];
+    ioValues: (number | undefined)[];
 }

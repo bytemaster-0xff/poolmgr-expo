@@ -71,12 +71,7 @@ class BleManager {
       maxByteSize = 20;
     }
     return new Promise((fulfill, reject) => {
-      bleManager.write(
-        peripheralId,
-        serviceUUID,
-        characteristicUUID,
-        data,
-        maxByteSize,
+      bleManager.write( peripheralId, serviceUUID, characteristicUUID, data, maxByteSize,
         error => {
           if (error) {
             reject(error);
@@ -88,20 +83,15 @@ class BleManager {
     });
   }
 
-  writeWithoutResponse(
-    peripheralId,
-    serviceUUID,
-    characteristicUUID,
-    data,
-    maxByteSize,
-    queueSleepTime
-  ) {
+  writeWithoutResponse( peripheralId, serviceUUID, characteristicUUID, data, maxByteSize,queueSleepTime) {
     if (maxByteSize == null) {
       maxByteSize = 20;
     }
+
     if (queueSleepTime == null) {
       queueSleepTime = 10;
     }
+
     return new Promise((fulfill, reject) => {
       bleManager.writeWithoutResponse(
         peripheralId,
@@ -186,12 +176,7 @@ class BleManager {
     });
   }
 
-  startNotificationUseBuffer(
-    peripheralId,
-    serviceUUID,
-    characteristicUUID,
-    buffer
-  ) {
+  startNotificationUseBuffer(peripheralId,serviceUUID,characteristicUUID, buffer) {
     return new Promise((fulfill, reject) => {
       bleManager.startNotificationUseBuffer(
         peripheralId,

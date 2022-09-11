@@ -64,7 +64,7 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
           
             let sysconfig = new SysConfig(deviceConfig!);
             setDeviceId(sysconfig.deviceId);
-            setServerUrl(sysconfig.srvrHostName);
+            setServerUrl(sysconfig.serverHostName);
             setCommissioned(sysconfig.commissioned);
             setUseCellular(sysconfig.cellEnabled);
             setUseWIFi(sysconfig.wifiEnabled);
@@ -81,22 +81,20 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
         }
     }
 
-    React.useLayoutEffect(() => {
-        navigation.setOptions({
-            headerRight: () => (
-              <View style={{ flexDirection: 'row' }} >
-              <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => setHandler('save')} name='save' />
-          </View>),
-          });        
-      }, [navigation, viewReady, deviceId]);
-
-
     useEffect(() => {
         switch(handler) {
             case 'save': writeChar(); 
                 setHandler(undefined);
             break;
         }
+
+        navigation.setOptions({
+            headerRight: () => (
+              <View style={{ flexDirection: 'row' }} >
+              <Icon.Button  backgroundColor="transparent"   underlayColor="transparent" color="navy" onPress={() => setHandler('save')} name='save' />
+          </View>),
+          });        
+
 
         return (() => {
             console.log('shutting down...');

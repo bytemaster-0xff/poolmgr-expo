@@ -40,33 +40,33 @@ export class HttpClient {
                     RefreshToken: refreshToken,
                 }
 
-                await fetch('https://api.nuviot.com/api/v1/auth',
-                    {
-                        method: 'POST',
-                        headers: {
-                            Accept: 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(request)
-                    }).then((result: any) => result.json())
-                    .then(async (result: any) => {
-                        await AsyncStorage.setItem("isLoggedIn", "true");
+                try {
+                    let fetchResult = await fetch('https://api.nuviot.com/api/v1/auth',
+                        {
+                            method: 'POST',
+                            headers: {
+                                Accept: 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(request)
+                        })
+                    let refreshResult = await fetchResult.json();
 
-                        await AsyncStorage.setItem("jwt", result.result.accessToken);
-                        await AsyncStorage.setItem("refreshtoken", result.result.refreshToken);
-                        await AsyncStorage.setItem("refreshtokenExpires", result.result.refreshTokenExpiresUTC);
-                        await AsyncStorage.setItem("jwtExpires", result.result.accessTokenExpiresUTC);
-                        console.log('refreshed with new JWT');
-                        return true;
-                    })
-                    .catch((err: any) => {
-                        console.log('could not get refresh', err);
-                        return false;
-                    });
+                    await AsyncStorage.setItem("isLoggedIn", "true");
+
+                    await AsyncStorage.setItem("jwt", refreshResult.result.accessToken);
+                    await AsyncStorage.setItem("refreshtoken", refreshResult.result.refreshToken);
+                    await AsyncStorage.setItem("refreshtokenExpires", refreshResult.result.refreshTokenExpiresUTC);
+                    await AsyncStorage.setItem("jwtExpires", refreshResult.result.accessTokenExpiresUTC);
+                    console.log('refreshed with new JWT');
+                }
+                catch (err: any) {
+                    console.log('could not get refresh', err);
+                    return false;
+                };
             }
         }
-
-        console.log(jwt);
+        
         return true;
     }
 
@@ -84,11 +84,11 @@ export class HttpClient {
         withCredentials?: boolean;
     }): Promise<T> {
 
-        this.checkJWTExpire();
+        await this.checkJWTExpire();
         let jwt = await this.storage.getItemAsync("jwt");
 
         if (!options) {
-            options = {method: 'GET'};
+            options = { method: 'GET' };
         }
 
         options!.headers = { Authorization: "Bearer " + jwt };
@@ -126,14 +126,14 @@ export class HttpClient {
         withCredentials?: boolean;
     }): Promise<T> {
 
-        this.checkJWTExpire();
+        await this.checkJWTExpire();
         let jwt = await this.storage.getItemAsync("jwt");
         var result = await fetch(url, {
             method: 'PUT',
             body: JSON.stringify(body),
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: "Bearer " + jwt 
+                Authorization: "Bearer " + jwt
             }
         });
 
@@ -161,14 +161,14 @@ export class HttpClient {
         withCredentials?: boolean;
     }): Promise<T> {
 
-        this.checkJWTExpire();
+        await this.checkJWTExpire();
         let jwt = await this.storage.getItemAsync("jwt");
         var result = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(body),
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: "Bearer " + jwt 
+                Authorization: "Bearer " + jwt
             }
         });
 
