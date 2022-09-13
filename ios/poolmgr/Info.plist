@@ -5,7 +5,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>pool-mgr</string>
+    <string>NuvIoT</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -17,7 +17,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>$(MARKETING_VERSION)</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -53,11 +53,9 @@
       </dict>
     </dict>
     <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to connect to bluetooth devices</string>
+    <string>$(PRODUCT_NAME) needs access to bluetooth to configure external hardware devices</string>
     <key>NSBluetoothPeripheralUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to connect to bluetooth devices</string>
-    <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>$(PRODUCT_NAME) needs access to bluetooth to configure external hardware devices</string>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>

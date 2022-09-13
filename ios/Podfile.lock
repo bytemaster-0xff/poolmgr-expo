@@ -17,23 +17,25 @@ PODS:
   - EXJSONUtils (0.3.0)
   - EXManifests (0.3.0):
     - EXJSONUtils
+  - EXPermissions (13.2.0):
+    - ExpoModulesCore
   - Expo (45.0.4):
     - ExpoModulesCore
-  - expo-dev-client (1.0.0):
+  - expo-dev-client (1.0.1):
     - EXManifests
     - expo-dev-launcher
     - expo-dev-menu
     - expo-dev-menu-interface
     - EXUpdatesInterface
-  - expo-dev-launcher (1.0.0):
+  - expo-dev-launcher (1.0.1):
     - EXManifests
-    - expo-dev-launcher/Main (= 1.0.0)
+    - expo-dev-launcher/Main (= 1.0.1)
     - expo-dev-menu
     - expo-dev-menu-interface
     - ExpoModulesCore
     - EXUpdatesInterface
     - React-Core
-  - expo-dev-launcher/Main (1.0.0):
+  - expo-dev-launcher/Main (1.0.1):
     - EXManifests
     - expo-dev-launcher/Unsafe
     - expo-dev-menu
@@ -41,24 +43,24 @@ PODS:
     - ExpoModulesCore
     - EXUpdatesInterface
     - React-Core
-  - expo-dev-launcher/Unsafe (1.0.0):
+  - expo-dev-launcher/Unsafe (1.0.1):
     - EXManifests
     - expo-dev-menu
     - expo-dev-menu-interface
     - ExpoModulesCore
     - EXUpdatesInterface
     - React-Core
-  - expo-dev-menu (1.0.0):
-    - expo-dev-menu/Main (= 1.0.0)
+  - expo-dev-menu (1.0.1):
+    - expo-dev-menu/Main (= 1.0.1)
   - expo-dev-menu-interface (0.7.0)
-  - expo-dev-menu/GestureHandler (1.0.0)
-  - expo-dev-menu/Main (1.0.0):
+  - expo-dev-menu/GestureHandler (1.0.1)
+  - expo-dev-menu/Main (1.0.1):
     - EXManifests
     - expo-dev-menu-interface
     - expo-dev-menu/Vendored
     - ExpoModulesCore
     - React-Core
-  - expo-dev-menu/Reanimated (1.0.0):
+  - expo-dev-menu/Reanimated (1.0.1):
     - DoubleConversion
     - FBLazyVector
     - FBReactNativeSpec
@@ -86,8 +88,8 @@ PODS:
     - React-RCTVibration
     - ReactCommon/turbomodule/core
     - Yoga
-  - expo-dev-menu/SafeAreaView (1.0.0)
-  - expo-dev-menu/Vendored (1.0.0):
+  - expo-dev-menu/SafeAreaView (1.0.1)
+  - expo-dev-menu/Vendored (1.0.1):
     - expo-dev-menu/GestureHandler
     - expo-dev-menu/Reanimated
     - expo-dev-menu/SafeAreaView
@@ -100,7 +102,7 @@ PODS:
     - ExpoModulesCore
     - React-Core
   - EXStructuredHeaders (2.2.1)
-  - EXUpdates (0.13.3):
+  - EXUpdates (0.13.4):
     - ASN1Decoder (~> 1.8)
     - EASClient
     - EXManifests
@@ -327,7 +329,7 @@ PODS:
   - React-jsinspector (0.68.2)
   - React-logger (0.68.2):
     - glog
-  - react-native-ble-manager (8.4.0):
+  - react-native-ble-manager (8.4.3):
     - React-Core
   - react-native-ble-plx (2.0.3):
     - MultiplatformBleAdapter (= 0.1.9)
@@ -405,6 +407,8 @@ PODS:
     - React-perflogger (= 0.68.2)
   - RNCAsyncStorage (1.17.7):
     - React-Core
+  - RNCPicker (2.4.4):
+    - React-Core
   - RNScreens (3.11.1):
     - React-Core
     - React-RCTImage
@@ -425,6 +429,7 @@ DEPENDENCIES:
   - EXFont (from `../node_modules/expo-font/ios`)
   - EXJSONUtils (from `../node_modules/expo-json-utils/ios`)
   - EXManifests (from `../node_modules/expo-manifests/ios`)
+  - EXPermissions (from `../node_modules/expo-permissions/ios`)
   - Expo (from `../node_modules/expo/ios`)
   - expo-dev-client (from `../node_modules/expo-dev-client/ios`)
   - expo-dev-launcher (from `../node_modules/expo-dev-launcher`)
@@ -470,6 +475,7 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -502,6 +508,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-json-utils/ios"
   EXManifests:
     :path: "../node_modules/expo-manifests/ios"
+  EXPermissions:
+    :path: "../node_modules/expo-permissions/ios"
   Expo:
     :path: "../node_modules/expo/ios"
   expo-dev-client:
@@ -588,6 +596,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNCPicker:
+    :path: "../node_modules/@react-native-picker/picker"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   RNSVG:
@@ -609,16 +619,17 @@ SPEC CHECKSUMS:
   EXFont: 04235cc22e6fef86028feb67db452978dc6f240f
   EXJSONUtils: 2a74b8f40f1523cc3f92af99c91aa78201737a77
   EXManifests: 0c6134b7b6f3236a93a778c3f44ba1cfb3f9fa3d
+  EXPermissions: 3dbb869e7f96a5711314f73d48ddc2f28009a7f6
   Expo: 64d52669fa3b9342919b5b44b2b4f15f19b0cf76
-  expo-dev-client: 658fa86a3498812778d6c706205677c8e0674b9f
-  expo-dev-launcher: d752e911ee38ae4aca228a109c4ce07984006c44
-  expo-dev-menu: ef341cc70965de34085201b0ea57bc91f7ff16a8
+  expo-dev-client: 56e713e8ab330e3d2522e4d1c568dc1f5e0116b1
+  expo-dev-launcher: 3c6059a3f2cc3093a2a22d23e57cb54bcba5b33f
+  expo-dev-menu: ba291761e0ffbdd7011fd33576687f939cadf044
   expo-dev-menu-interface: db5495dd7206992a94ce35c51391f139ae26f2b7
   ExpoKeepAwake: c0c494b442ecd8122974c13b93ccfb57bd408e88
   ExpoModulesCore: e4278a668e8c13c0269ed8b8a4200989deea2973
   EXSplashScreen: 34f460788db8d682883871708dddbfac72095bb7
   EXStructuredHeaders: 5d86829469399370a9fc7cb1e4391b09de87681d
-  EXUpdates: 084edfaac900e6bc77ab4027eaf7437a4236b8c3
+  EXUpdates: f8d0170faaf3032912284693ef07f4d57288e14e
   EXUpdatesInterface: 0b101ace1dbfa0f64260a5df31c71d03c66cca54
   FBLazyVector: a7a655862f6b09625d11c772296b01cd5164b648
   FBReactNativeSpec: 81ce99032d5b586fddd6a38d450f8595f7e04be4
@@ -638,7 +649,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: b7b553412f2ec768fe6c8f27cd6bafdb9d8719e6
   React-jsinspector: c5989c77cb89ae6a69561095a61cce56a44ae8e8
   React-logger: a0833912d93b36b791b7a521672d8ee89107aff1
-  react-native-ble-manager: d8dce4e9685bb34e4e36e08464d03e2e3df4032e
+  react-native-ble-manager: b67db4b4c9f8ce8038b4aad4fe29db98878738ea
   react-native-ble-plx: f10240444452dfb2d2a13a0e4f58d7783e92d76e
   react-native-safe-area-context: f98b0b16d1546d208fc293b4661e3f81a895afd9
   React-perflogger: a18b4f0bd933b8b24ecf9f3c54f9bf65180f3fe6
@@ -654,11 +665,12 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: b960b687d2dfef0d3761fbb187e01812ebab8b23
   ReactCommon: 095366164a276d91ea704ce53cb03825c487a3f2
   RNCAsyncStorage: d81ee5c3db1060afd49ea7045ad460eff82d2b7d
+  RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
   RNScreens: 4d83613b50b74ed277026375dc0810893b0c347f
   RNSVG: 302bfc9905bd8122f08966dc2ce2d07b7b52b9f8
   RNVectorIcons: 7923e585eaeb139b9f4531d25a125a1500162a0b
   Yoga: 99652481fcd320aefa4a7ef90095b95acd181952
 
-PODFILE CHECKSUM: c55221d6fa870dc059a2da9f35729fc8492fa971
+PODFILE CHECKSUM: a4fa378c48ffeb4e26e42c82d321a21f3d5c38b5
 
 COCOAPODS: 1.11.3
