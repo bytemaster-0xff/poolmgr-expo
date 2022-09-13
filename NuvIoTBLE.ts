@@ -1,8 +1,11 @@
 import { Platform, EmitterSubscription, NativeEventEmitter, NativeModules } from "react-native";
 import { Peripheral } from 'react-native-ble-manager';
-import { AsyncStorageStatic } from "react-native";
 const BleManagerModule = NativeModules.BleManager;
+console.log('hi');
+console.log(BleManagerModule);
+
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+console.log('there');
 import BleManager, { requestMTU } from './services/BleManager'
 var Buffer = require('buffer/').Buffer
 
@@ -119,7 +122,7 @@ export class NuvIoTBLE {
   public emitter: NativeEventEmitter;
 
   constructor() {
-    this.emitter = new NativeEventEmitter();
+    this.emitter = new NativeEventEmitter(BleManagerModule);
     console.log("BLEManager__Constructor");
     console.log("OS " + Platform.OS);
 
