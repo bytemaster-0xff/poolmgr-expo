@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
 
     scrollContainer: {
       padding:20,
+      flex:1,
     },
 
     listRow: {

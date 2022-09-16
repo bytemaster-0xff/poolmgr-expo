@@ -225,8 +225,6 @@ class BleManager {
           reject('ble manager is null, can not continue');
       }
 
-      console.log('ble is available')
-
         bleManager.start(options, error => {
         if (error) {
           reject(error);

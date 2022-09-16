@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, View, Text, TextInput } from "react-native";
-import DropDownPicker from 'react-native-dropdown-picker';
 
 
 import styles from '../styles';
-import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { RemoteDeviceState } from "../models/blemodels/state";
 import { IOValues } from "../models/blemodels/iovalues";
 import { IOConfig } from "../models/blemodels/ioconfig";
+import { IReactPageServices } from "../services/react-page-services";
 
-export const TempSensorPage = ({ props, navigation, route }) => {
+export const TempSensorPage = ({ props, navigation, route }: IReactPageServices) => {
     
     let [pageInitialized, setPageInitialized] = useState<boolean>();
 

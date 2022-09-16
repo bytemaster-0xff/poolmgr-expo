@@ -5,7 +5,7 @@ import { TouchableOpacity, ScrollView, View, Text, TextInput } from "react-nativ
 import services from '../services/app-services';
 
 import styles from '../styles';
-import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { ble,  CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { IReactPageServices } from "../services/react-page-services";
 import { RemoteDeviceState } from "../models/blemodels/state";
 
@@ -34,8 +34,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
         setConnectionState(DISCONNECTED);
         setRemoteDeviceState(undefined);
 
-        ble.emitter.removeAllListeners('receive');
-        ble.emitter.removeAllListeners('disconnected');
+        ble.btEmitter.removeAllListeners('receive');
+        ble.btEmitter.removeAllListeners('disconnected');
         ble.unsubscribe();
     }
 
@@ -46,8 +46,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
             setConnectionState(CONNECTED);
             await ble.subscribe(ble);
             ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
-            ble.emitter.addListener('receive', handler);
-            ble.emitter.addListener('disconnected', disconnectHandler);
+            ble.btEmitter.addListener('receive', handler);
+            ble.btEmitter.addListener('disconnected', disconnectHandler);
         }
     }
 
@@ -69,8 +69,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
             console.log('Leaving configure device page.');
             if (connectionState == CONNECTED) {
                 ble.unsubscribe();
-                ble.emitter.removeAllListeners('receive');                
-                ble.emitter.removeAllListeners('disconnected');
+                ble.btEmitter.removeAllListeners('receive');                
+                ble.btEmitter.removeAllListeners('disconnected');
                 await ble.disconnectById(peripheralId);
             }
         });
@@ -85,8 +85,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
         setInitialCall(false);
         if(connectionState == CONNECTED) {
             ble.unsubscribe();
-            ble.emitter.removeAllListeners('receive');
-            ble.emitter.removeAllListeners('disconnected');
+            ble.btEmitter.removeAllListeners('receive');
+            ble.btEmitter.removeAllListeners('disconnected');
             
             await ble.disconnectById(peripheralId);
 
@@ -108,8 +108,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
     const restartDevice = async () => {
         if(connectionState == CONNECTED) {        
             ble.unsubscribe();
-            ble.emitter.removeAllListeners('receive');
-            ble.emitter.removeAllListeners('disconnected');
+            ble.btEmitter.removeAllListeners('receive');
+            ble.btEmitter.removeAllListeners('disconnected');
             setRemoteDeviceState(undefined);
 
             await ble.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
@@ -122,8 +122,8 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
     const factoryReset = async () => {
         if(connectionState == CONNECTED) {
             ble.unsubscribe();
-            ble.emitter.removeAllListeners('receive');
-            ble.emitter.removeAllListeners('disconnected');
+            ble.btEmitter.removeAllListeners('receive');
+            ble.btEmitter.removeAllListeners('disconnected');
             setRemoteDeviceState(undefined);
 
             await ble.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `factoryreset=1`);

@@ -4,7 +4,7 @@ import { IReactPageServices } from "../services/react-page-services";
 import { TouchableOpacity, ScrollView, View, Text, TextInput } from "react-native";
 import { RemoteDeviceState } from "../models/blemodels/state";
 import Icon from "react-native-vector-icons/Ionicons";
-import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { ble,  CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import styles from '../styles';
 import { Picker } from '@react-native-picker/picker';
 

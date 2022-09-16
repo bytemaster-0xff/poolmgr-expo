@@ -6,7 +6,7 @@ import Icon from "react-native-vector-icons/Ionicons";
 import services from '../services/app-services';
 
 import styles from '../styles';
-import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { IReactPageServices } from "../services/react-page-services";
 import { RemoteDeviceState } from "../models/blemodels/state";
 import { SysConfig } from "../models/blemodels/sysconfig";
@@ -47,15 +47,15 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
         setRemoteDeviceState(undefined);
         setSensorValues(undefined);
 
-        ble.emitter.removeAllListeners('receive');
-        ble.emitter.removeAllListeners('disconnected');
+        ble.btEmitter.removeAllListeners('receive');
+        ble.btEmitter.removeAllListeners('disconnected');
         ble.unsubscribe();        
     }
 
     const showConfigurePage = async() => {
         if(connectionState == CONNECTED) {
-            ble.emitter.removeAllListeners('receive');
-            ble.emitter.removeAllListeners('disconnected');
+            ble.btEmitter.removeAllListeners('receive');
+            ble.btEmitter.removeAllListeners('disconnected');
             ble.unsubscribe();
             await ble.disconnectById(peripheralId);
             setConnectionState(DISCONNECTED_PAGE_SUSPENDED);            
@@ -87,8 +87,8 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
             
             await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
             await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-            ble.emitter.addListener('receive', charHandler);
-            ble.emitter.addListener('disconnected', disconnectHandler);
+            ble.btEmitter.addListener('receive', charHandler);
+            ble.btEmitter.addListener('disconnected', disconnectHandler);
         }
     }
 
@@ -111,8 +111,8 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
             }
             else if(connectionState == CONNECTED) {
                 console.log('DevicePage_BeforeRemove.');
-                ble.emitter.removeAllListeners('receive');
-                ble.emitter.removeAllListeners('disconnected');
+                ble.btEmitter.removeAllListeners('receive');
+                ble.btEmitter.removeAllListeners('disconnected');
                 ble.unsubscribe();
                 await ble.disconnectById(peripheralId);
             }

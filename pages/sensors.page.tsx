@@ -7,7 +7,7 @@ import { Picker } from '@react-native-picker/picker';
 import services from '../services/app-services';
 
 import styles from '../styles';
-import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { ble,  CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { IReactPageServices } from "../services/react-page-services";
 import { IOValues } from "../models/blemodels/iovalues";
 
@@ -98,8 +98,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     const disconnectHandler = (id: string) => {
         setConnectionState(DISCONNECTED);
 
-        ble.emitter.removeAllListeners('receive');
-        ble.emitter.removeAllListeners('disconnected');
+        ble.btEmitter.removeAllListeners('receive');
+        ble.btEmitter.removeAllListeners('disconnected');
         ble.unsubscribe();
     }
 
@@ -110,8 +110,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             setConnectionState(CONNECTED);
             await ble.subscribe(ble);
             ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-            ble.emitter.addListener('receive', handler);
-            ble.emitter.addListener('disconnected', disconnectHandler);
+            ble.btEmitter.addListener('receive', handler);
+            ble.btEmitter.addListener('disconnected', disconnectHandler);
         }
     }
 
@@ -164,8 +164,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     const restartDevice = async () => {
         if (connectionState == CONNECTED) {
             ble.unsubscribe();
-            ble.emitter.removeAllListeners('receive');
-            ble.emitter.removeAllListeners('disconnected');
+            ble.btEmitter.removeAllListeners('receive');
+            ble.btEmitter.removeAllListeners('disconnected');
             await ble.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
             await ble.disconnectById(peripheralId);
             setConnectionState(DISCONNECTED);
@@ -195,8 +195,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             console.log('Leaving configure device page.');
             if (connectionState == CONNECTED) {
                 ble.unsubscribe();
-                ble.emitter.removeAllListeners('receive');
-                ble.emitter.removeAllListeners('disconnected');
+                ble.btEmitter.removeAllListeners('receive');
+                ble.btEmitter.removeAllListeners('disconnected');
                 await ble.disconnectById(peripheralId);
             }
         });
@@ -208,9 +208,9 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     });
 
     return (
-        <View style={styles.scrollContainer}>
+        <ScrollView style={styles.scrollContainer}>
             {connectionState == CONNECTED &&
-                <View>
+                <View >
                     <StatusBar style="auto" />
                     <Text style={styles.label}>Port:</Text>
                     <Picker selectedValue={value} onValueChange={portChanged} >
@@ -262,6 +262,6 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
                 }
                 {connectionState == IDLE && <Text>Please wait</Text>}
                 {connectionState == DISCONNECTED_PAGE_SUSPENDED && <Text>Please Wait Reconnecting</Text>}
-        </View>
+        </ScrollView>
     );
 }

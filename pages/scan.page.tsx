@@ -121,8 +121,8 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         setIsScanning(isScanning);
         if (!isScanning) {
             console.log('scanning finished');
-            ble.emitter.removeAllListeners('connected');
-            ble.emitter.removeAllListeners('scanning');
+            ble.btEmitter.removeAllListeners('connected');
+            ble.btEmitter.removeAllListeners('scanning');
             findNuvIoTDevices();
         }
     }
@@ -154,11 +154,11 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         if (isScanning)
             return;
 
-        const permission = await requestLocationPermission();
+        const permission = Platform.OS == "android" ? await requestLocationPermission() : true;
         if (permission) {
             setDiscoveredPeripherals([]);
-            ble.emitter.addListener('connected', (device) => discovered(device))
-            ble.emitter.addListener('scanning', (isScanning) => { scanningStatusChanged(isScanning); });
+            ble.btEmitter.addListener('connected', (device) => discovered(device))
+            ble.btEmitter.addListener('scanning', (isScanning) => { scanningStatusChanged(isScanning); });
             await ble.startScan();
         }
     }
@@ -166,9 +166,8 @@ export default function ScanPage({ navigation }: IReactPageServices) {
     
     const stopScanning = () => {
         if(isScanning) {
-            ble.emitter.removeAllListeners('connected');
-            ble.emitter.removeAllListeners('scanning');
-
+            ble.btEmitter.removeAllListeners('connected');
+            ble.btEmitter.removeAllListeners('scanning');
             ble.stopScan();
         }
     }

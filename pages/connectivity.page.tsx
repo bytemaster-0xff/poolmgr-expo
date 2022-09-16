@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, ScrollView, Text, TextInput , Switch, TouchableOpacity} from "react-native";
 
 import styles from '../styles';
-import { ble, CHAR_UUID_ADC_IOCONFIG, CHAR_UUID_ADC_VALUE, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
+import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { SysConfig } from "../models/blemodels/sysconfig";
 import Icon from "react-native-vector-icons/Ionicons";
 import { RemoteDeviceState } from "../models/blemodels/state";
