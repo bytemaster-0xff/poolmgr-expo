@@ -16,7 +16,9 @@ export default function ScanPage({ navigation }: IReactPageServices) {
     const [discoveredPeripherals, setDiscoveredPeripherals] = useState<Peripheral[]>([]);
 
     const [isScanning, setIsScanning] = useState<boolean>(false);
+    const [ busyMessage, setIsBusyMessage] = useState<String>('Busy');
     const [initialCall, setInitialCall] = useState<boolean>(true);
+
 
     const requestLocationPermission = async () => {
         try {
@@ -78,8 +80,9 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
     const findNuvIoTDevices = async () => {
         let idx = 1;
+        setIsScanning(true);
         for (let peripheral of discoveredPeripherals) {
-            console.log(`Device ${idx++} of ${discoveredPeripherals.length}`);
+            setIsBusyMessage(`Loading Device ${idx++} of ${discoveredPeripherals.length}`);
             if (await ble.connectById(peripheral.id, CHAR_UUID_SYS_CONFIG)) {
                 let sysConfigStr = await ble.getCharacteristic(peripheral.id, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
                 if (sysConfigStr) {
@@ -88,7 +91,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                     let sysConfig = new SysConfig(sysConfigStr);
 
                     let name = sysConfig.deviceId;
-                    if(!name || name == '')
+                    if (!name || name == '')
                         name = peripheral.name!;
 
                     let device: BLENuvIoTDevice = {
@@ -112,18 +115,22 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                 await ble.disconnectById(peripheral.id);
             }
         }
+        setIsScanning(false);
     }
 
 
     const scanningStatusChanged = (isScanning: boolean) => {
         console.log('scanningStatusChanged=>' + isScanning);
-
         setIsScanning(isScanning);
-        if (!isScanning) {
+
+        if (!isScanning) {            
             console.log('scanning finished');
             ble.btEmitter.removeAllListeners('connected');
             ble.btEmitter.removeAllListeners('scanning');
-            findNuvIoTDevices();
+            findNuvIoTDevices();    
+        }
+        else {
+            setIsBusyMessage('Scanning for local devices.');
         }
     }
 
@@ -163,9 +170,9 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         }
     }
 
-    
+
     const stopScanning = () => {
-        if(isScanning) {
+        if (isScanning) {
             ble.btEmitter.removeAllListeners('connected');
             ble.btEmitter.removeAllListeners('scanning');
             ble.stopScan();
@@ -189,7 +196,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         });
 
         const focusSubscription = navigation.addListener('focus', () => {
-            
+
         });
 
         const blurSubscription = navigation.addListener('beforeRemove', () => {
@@ -204,8 +211,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
 
 
     const discovered = async (peripheral: Peripheral) => {
-        if (peripheral.name?.startsWith("NuvIoT"))
-            discoveredPeripherals.push(peripheral);
+        discoveredPeripherals.push(peripheral);
     }
 
     const myItemSeparator = () => { return <View style={{ height: 1, backgroundColor: "#c0c0c0git ", marginHorizontal: 6 }} />; };
@@ -213,31 +219,21 @@ export default function ScanPage({ navigation }: IReactPageServices) {
     const myListEmpty = () => {
         return (
             <View style={{ alignItems: "center" }}>
-                <Text style={styles.item}> no data </Text>
+                <Text style={styles.item}> could not find any devices. </Text>
             </View>
         );
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: 'white' }]}>
-            {isScanning &&
-                <View style={{alignSelf: "stretch", backgroundColor: 'navyblue'}}>
-                    <Text style={{flex:1 }}>Please Wait - Scanning</Text>
-                    <View style={{ flex: 1, backgroundColor: "brown" }} />
-                    <View style={{ flex:1, backgroundColor: "yellow", flexDirection: 'row' }} >
-                        <View style={{ flex:1, backgroundColor: "red" }} />
-                        <View style={{ flex:1}} >
-                            <ActivityIndicator size="large" color="#00ff00" animating={isScanning} />
-                        </View>
-                        <View style={{ flex:1, backgroundColor: "blue" }} />
-                    </View>
-                    <View style={{ flex: 1, backgroundColor: "green" }} />
-                </View>
-            }
-
-            {!isScanning &&
+            isScanning ?
+            <View style={styles.spinnerView}>
+                <Text style={{ fontSize: 25 }}>{busyMessage}</Text>
+                <ActivityIndicator size="large" color="#00ff00" animating={isScanning} />
+            </View>
+            :
+            <View>
                 <FlatList
-                    contentContainerStyle={{ flex: 1, alignItems: "stretch" }}
+                    contentContainerStyle={{  alignItems: "stretch" }}
                     style={{ backgroundColor: 'white', width: "100%" }}
                     ItemSeparatorComponent={myItemSeparator}
                     ListEmptyComponent={myListEmpty}
@@ -256,8 +252,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                         </Pressable>
                     }
                 />
-            }
-        </View>
+            </View>
     );
 }
 

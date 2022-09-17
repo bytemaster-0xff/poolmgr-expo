@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import Auth from './pages/auth.page';
+
 import SplashPage from './pages/splash.page';
 import HomePage from './pages/home.page';
 import { ConnectivityPage } from './pages/connectivity.page';
@@ -13,6 +13,9 @@ import ProvisionPage from './pages/provision.page';
 import { ConfigureDevicePage } from './pages/configureDevice.page';
 import ScanPage from './pages/scan.page';
 import AccountPage from './pages/account.page';
+import DfuPage from './pages/dfu.page';
+import ChangeOrgPage from './pages/changeOrgs.page';
+import AuthPage from './pages/auth.page';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,12 +24,14 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="splashPage" component={SplashPage} options={{ title: 'Welcome' }} />
-        <Stack.Screen name="authPage" component={Auth} options={{ title: 'Please Login' }} />
+        <Stack.Screen name="authPage" component={AuthPage} options={{ title: 'Please Login' }} />
         <Stack.Screen name="provisionPage" component={ProvisionPage} options={{ title: 'Provision' }} />
         <Stack.Screen name="configureDevice" component={ConfigureDevicePage} options={{ title: 'Configure Device' }} />
         <Stack.Screen name="homePage" component={HomePage} options={{ title: 'Home Page' }} />
         <Stack.Screen name="accountPage" component={AccountPage} options={{ title: 'My Account Page' }} />
         <Stack.Screen name="scanPage" component={ScanPage} options={{ title: 'Scan Page' }} />
+        <Stack.Screen name="dfuPage" component={DfuPage} options={{ title: 'Update Firmware' }} />
+        <Stack.Screen name="changeOrgsPage" component={ChangeOrgPage} options={{ title: 'Switch Organization' }} />
         <Stack.Screen name="devicePage" component={DevicePage} options={{ title: 'Device' }} />
         <Stack.Screen name="sensorsPage" component={SensorsPage} options={{ title: 'Sensors' }} />
         <Stack.Screen name="settingsPage" component={ConnectivityPage} options={{ title: 'Settings' }} />

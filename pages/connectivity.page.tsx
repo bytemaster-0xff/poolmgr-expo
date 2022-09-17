@@ -111,7 +111,6 @@ export const ConnectivityPage = ({ props, navigation, route }: IReactPageService
 
     return (
         <ScrollView style={styles.scrollContainer}>
-            <StatusBar style="auto" />
 
             <Text style={styles.label}>Device Id:</Text>
             <TextInput style={styles.inputStyle} placeholder="enter device id" value={deviceId} onChangeText={e => {setDeviceId(e); console.log(deviceId)}} />

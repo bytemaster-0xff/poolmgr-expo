@@ -1,3 +1,4 @@
+import { UserService } from './user.service';
 import {NativeStorageService } from '../core/utils'
 import {NuviotClientService } from './nuviot-client.service';
 import { NetworkCallStatusService } from './network-call-status-service'; 
@@ -22,6 +23,8 @@ class AppServices {
         this.deviceGroupsServices = new DeviceGroupService(this.client);
 
         this.deviceServices = new DevicesService(this.deviceGroupsServices, this.client);
+
+        this.userServices = new UserService(this.httpClient, this.client, this.errorReporter, this.storage );
     }
 
 
@@ -32,6 +35,7 @@ class AppServices {
     client: NuviotClientService;
     deviceGroupsServices: DeviceGroupService;
     deviceServices: DevicesService;
+    userServices: UserService;
 
    // storage: NativeStor
 }

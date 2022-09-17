@@ -28,46 +28,56 @@ export class HttpClient {
             let date = new Date(jwt);
             if (date < new Date()) {
                 console.log('expired, refreshing');
-                let refreshToken = await this.storage.getItemAsync('refreshtoken');
-
-                let request = {
-                    GrantType: 'refreshtoken',
-                    AppInstanceId: 'ABC123',
-                    AppId: 'ABC1234',
-                    DeviceId: 'ABC123',
-                    ClientType: 'mobileapp',
-                    Email: 'KEVINW@SLSYS.NET',
-                    RefreshToken: refreshToken,
-                }
-
-                try {
-                    let fetchResult = await fetch('https://api.nuviot.com/api/v1/auth',
-                        {
-                            method: 'POST',
-                            headers: {
-                                Accept: 'application/json',
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(request)
-                        })
-                    let refreshResult = await fetchResult.json();
-
-                    await AsyncStorage.setItem("isLoggedIn", "true");
-
-                    await AsyncStorage.setItem("jwt", refreshResult.result.accessToken);
-                    await AsyncStorage.setItem("refreshtoken", refreshResult.result.refreshToken);
-                    await AsyncStorage.setItem("refreshtokenExpires", refreshResult.result.refreshTokenExpiresUTC);
-                    await AsyncStorage.setItem("jwtExpires", refreshResult.result.accessTokenExpiresUTC);
-                    console.log('refreshed with new JWT');
-                }
-                catch (err: any) {
-                    console.log('could not get refresh', err);
-                    return false;
-                };
+                return await this.renewToken();
             }
         }
         
         return true;
+    }
+
+    async renewToken(): Promise<boolean>{
+        let refreshToken = await this.storage.getItemAsync('refreshtoken');
+
+        let request = {
+            GrantType: 'refreshtoken',
+            AppInstanceId: 'ABC123',
+            AppId: 'ABC1234',
+            DeviceId: 'ABC123',
+            ClientType: 'mobileapp',
+            Email: 'KEVINW@SLSYS.NET',
+            RefreshToken: refreshToken,
+        }
+
+        try {
+            let fetchResult = await fetch('https://api.nuviot.com/api/v1/auth',
+                {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(request)
+                })
+            let refreshResult = await fetchResult.json();
+
+            await AsyncStorage.setItem("isLoggedIn", "true");
+
+            await AsyncStorage.setItem("jwt", refreshResult.result.accessToken);
+            await AsyncStorage.setItem("refreshtoken", refreshResult.result.refreshToken);
+            await AsyncStorage.setItem("refreshtokenExpires", refreshResult.result.refreshTokenExpiresUTC);
+            await AsyncStorage.setItem("jwtExpires", refreshResult.result.accessTokenExpiresUTC);
+            console.log('refreshed with new JWT');
+
+            let currentUserResult = await this.get<Core.FormResult<Users.AppUser, Users.AppUserView>>('https://api.nuviot.com/api/user');
+            console.log(currentUserResult.model);
+            await AsyncStorage.setItem("app_user", JSON.stringify(currentUserResult.model));
+
+            return true;
+        }
+        catch (err: any) {
+            console.log('could not get refresh', err);
+            return false;
+        };
     }
 
     async get<T>(url: string, options?: {

@@ -37,6 +37,18 @@ const styles = StyleSheet.create({
       color: 'black',
       fontSize:18,
     },
+
+    spinnerView: {
+      position: "absolute",
+      zIndex: 1,
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F5FCFF88",
+    },
     
     submitButton: {
       backgroundColor: "green",
@@ -44,8 +56,20 @@ const styles = StyleSheet.create({
       borderRadius:10,
       margin: 0,
       height: 42,
-      width: 120,
+      width: 300,
       alignItems: 'center'
+    },
+
+    navRow: {
+      backgroundColor: "white",
+      height:42,
+      width: 300,
+      borderBottomColor: "gray",
+      borderBottomWidth: 1
+    },
+
+    navRowText: {
+      color: "black"
     },
 
     submitButtonText: {

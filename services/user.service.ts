@@ -19,30 +19,9 @@ export class UserService {
     private clientService: NuviotClientService,
     private errorReporter: ErrorReporterService,
     private nativeStorage: NativeStorageService,
-    private router: Router,
-    private _activatedRoute: ActivatedRoute) {
+  ) {
 
 
-    this.queryParams = Object.keys(this._activatedRoute.snapshot.queryParams).length > 0 ? this._activatedRoute.snapshot.queryParams : {};
-    const paramOptions = {};
-
-    if (this.hasParams()) {
-      paramOptions['queryParamsHandling'] = 'preserve';
-    } else {
-      if (window.location.href.search) {
-        const vm = this;
-        location.search.substr(1).replace('==', '`').split('&').forEach(function (item) {
-          const parts = item.split('=');
-
-          if (parts[0] !== '') {
-            vm.queryParams[parts[0]] = parts[1].replace('`', '==');
-          }
-        });
-        if (this.hasParams()) {
-          paramOptions['queryParams'] = this.queryParams;
-        }
-      }
-    }
   }
 
   async getIsLoggedIn(): Promise<boolean> {
@@ -100,6 +79,10 @@ export class UserService {
     }
 
     return result;
+  }
+
+  public async refreshToken(): Promise<boolean> {
+    return this.clientService.renewToken();
   }
 
   public changeOrganization(orgId: string): Promise<boolean> {

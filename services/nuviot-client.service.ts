@@ -1,4 +1,3 @@
-
 import { environment } from '../core/utils';
 import { HttpClient, HttpHeaders } from '../core/utils';
 import { ErrorReporterService } from './error-reporter.service';
@@ -6,7 +5,6 @@ import { NetworkCallStatusService } from './network-call-status-service';
 
 
 export class NuviotClientService {
-
   constructor(private http: HttpClient,
     private networkCallService: NetworkCallStatusService,
     private errorReporter: ErrorReporterService) { }
@@ -352,6 +350,10 @@ export class NuviotClientService {
     });
 
     return promise;
+  }
+
+  renewToken(): Promise<boolean> {
+    return this.http.renewToken();
   }
 
   deleteWithResponse<TResponse>(path: string): Promise<Core.InvokeResultEx<TResponse>> {

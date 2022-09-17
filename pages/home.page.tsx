@@ -57,6 +57,10 @@ export default function HomePage({ navigation }: IReactPageServices) {
         navigation.navigate('scanPage');
     }
 
+    const showPage = (pageName: string) => {
+        navigation.navigate(pageName);
+    }
+
     const reposPage = () => {
         return <View>
             <Text>repos</Text>
@@ -72,7 +76,11 @@ export default function HomePage({ navigation }: IReactPageServices) {
     }
         
     const profilePage = () => {
-        return <View><Text>repos</Text></View>
+        return <View>
+                  <TouchableOpacity style={[styles.navRow]} onPress={() => showPage('changeOrgsPage')}>
+                        <Text style={[styles.navRowText]}> Switch Organizations </Text>
+                    </TouchableOpacity>
+                </View>
     }
 
     const renderTabs = () => {

@@ -1,9 +1,11 @@
 
 import { BehaviorSubject,  Observable } from 'rxjs';
-
+import { NuvIoTEventEmitter } from '../utils/NuvIoTEventEmitter';
 
 
 export class NetworkCallStatusService {
+
+    public emitter: NuvIoTEventEmitter = new NuvIoTEventEmitter();
 
     constructor() { }
     _activeCallCount: number = 0;
@@ -21,15 +23,21 @@ export class NetworkCallStatusService {
 
     beginCall() {
         this._activeCallCount++;
-        this._loadingMessages.push["loading"];
+        this._loadingMessages.push("loading");
         this._activeCalls.next(this._loadingMessages);
+
+        console.log(this._activeCallCount);
+        this.emitter.emit('busy', this._activeCallCount);
     }
 
     endCall() {
         this._activeCallCount--;
-        this._loadingMessages.pop["loading"];
+        this._loadingMessages.pop();
         if (this._activeCallCount == 0) {
             this._endCalls.next(this._loadingMessages);
+            this.emitter.emit('idle', this._activeCallCount);
         }
+
+        console.log(this._activeCallCount);
     }
 }

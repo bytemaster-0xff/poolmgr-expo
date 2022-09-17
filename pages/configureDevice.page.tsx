@@ -105,6 +105,10 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
         await safeNavigate('sensorsPage', { id: peripheralId });
     }
 
+    const showFirmwarePage = async () => {
+        await safeNavigate('dfuPage', { id: peripheralId });
+    }
+
     const restartDevice = async () => {
         if(connectionState == CONNECTED) {        
             ble.unsubscribe();
@@ -167,6 +171,10 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
 
                 <TouchableOpacity style={[styles.submitButton]} onPress={() => factoryReset()}>
                     <Text style={[styles.submitButtonText, { color: 'white' }]}> Factory Reset </Text>
+                </TouchableOpacity>
+            
+                <TouchableOpacity style={[styles.submitButton]} onPress={() => showFirmwarePage()}>
+                    <Text style={[styles.submitButtonText, { color: 'white' }]}> Firmware </Text>
                 </TouchableOpacity>
             </View>
             }
