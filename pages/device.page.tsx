@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { TouchableOpacity, ScrollView, View, Text, TextInput } from "react-native";
+import { TouchableOpacity, ScrollView, View, Text, ActivityIndicator, TextInput } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 
-import services from '../services/app-services';
+import AppServices from "../services/app-services";
+
 
 import styles from '../styles';
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
@@ -25,6 +26,8 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
     const [sensorValues, setSensorValues] = useState<IOValues | undefined>(undefined);
     const [connectionState, setConnectionState] = useState<number>(IDLE);
     const [sysConfig, setSysConfig] = useState<SysConfig>();
+    const [appServices, setAppServices] = useState<AppServices>(new AppServices());
+    const [isBusy, setIsBusy] = useState<boolean>(true);
     const peripheralId = route.params.id;
     
 
@@ -61,7 +64,7 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
             setConnectionState(DISCONNECTED_PAGE_SUSPENDED);            
         }
 
-        navigation.navigate('configureDevice', { id: peripheralId });
+        navigation.navigate('configureDevice', { id: peripheralId, repoId:deviceDetail?.deviceRepository.id, deviceId:deviceDetail?.id  });
     }
 
     const loadDevice = async () => {
@@ -74,14 +77,10 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
 
             let sysConfigStr = await ble.getCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG);
             if (sysConfigStr) {
-                let sysConfig = new SysConfig(sysConfigStr);
-                console.log(sysConfigStr);
-                console.log('ORGID -> ' + sysConfig?.orgId);
-                console.log('REPOID -> ' + sysConfig?.repoId);
-                console.log('ID -> ' + sysConfig?.id);
+                let sysConfig = new SysConfig(sysConfigStr);                
                 setSysConfig(sysConfig);
 
-                let device = await services.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
+                let device = await appServices.deviceServices.getDevice(sysConfig.repoId, sysConfig.id);
                 setDeviceDetail(device);
             }
             
@@ -95,6 +94,9 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
 
     useEffect(() => {
         if (initialCall) {
+            appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) })
+            appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) })
+
             loadDevice();    
             setInitialCall(false);
         }
@@ -125,7 +127,7 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
           </View>),
           });      
 
-          return (() => {
+          return (() => {            
             focusSubscription();
             blurSubscription();
         });
@@ -136,6 +138,12 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
       });
 
     return (
+        isBusy ?
+        <View style={styles.spinnerView}>                
+            <Text style={{fontSize: 25}}>Please Wait</Text>    
+            <ActivityIndicator size="large" color="#00ff00" animating={isBusy} />
+        </View>
+    :
         <View style={styles.scrollContainer}>
             <StatusBar style="auto" />
                 {connectionState == CONNECTED &&                 
@@ -144,6 +152,7 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
                         {deviceDetail && 
                         <View>
                             <Text>Device Name: {deviceDetail.name}</Text>
+                            <Text>Device Repo: {deviceDetail.deviceRepository.text}</Text>
                             <Text>Device Name: {deviceDetail.deviceType.text}</Text>
                         </View>
                         }

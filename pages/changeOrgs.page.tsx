@@ -5,7 +5,7 @@ import { TouchableOpacity, ScrollView, View, Text, TextInput, FlatList, Activity
 import Icon from "react-native-vector-icons/Ionicons";
 import { StatusBar } from 'expo-status-bar';
 
-import services from '../services/app-services';
+import AppServices from '../services/app-services';
 
 import styles from '../styles';
 export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) => {
@@ -14,19 +14,20 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
     const [orgs, setOrgs] = useState<Users.OrgUser[]>();
     const [user, setUser] = useState<Users.AppUser>();
     const [isBusy, setIsBusy] = useState<boolean>(true);
+    const [appServices, setAppServices] = useState<AppServices>(new AppServices());
     const colorScheme = "useColorScheme()"
 
     const loadUserOrgs = async () => {
-        let orgs = await services.userServices.getOrgsForCurrentUser()
+        let orgs = await appServices.userServices.getOrgsForCurrentUser()
         setOrgs(orgs.model);
-        let user = await services.userServices.getUser();
+        let user = await appServices.userServices.getUser();
         setUser(user);
     }
 
     useEffect(() => {
         if (initialCall) {
-            services.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) })
-            services.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) })
+            appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) })
+            appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) })
             setInitialCall(false);
             loadUserOrgs();
         }
@@ -34,12 +35,12 @@ export const ChangeOrgPage = ({ props, navigation, route }: IReactPageServices) 
 
     const setNewUserOrg = async (org: Users.OrgUser) => {
         console.log('ChangeOrgPage__setNewUserOrg, Org=' + org.organizationName);
-        let result = await services.userServices.changeOrganization(org.orgId);
+        let result = await appServices.userServices.changeOrganization(org.orgId);
         if (result) {
-            services.userServices.refreshToken()
+            appServices.userServices.refreshToken()
         }
 
-        let user = await services.userServices.getUser();
+        let user = await appServices.userServices.getUser();
         setUser(user);
 
         Alert.alert('Organization Changed', `Welcome to the ${user?.currentOrganization.text}!`)

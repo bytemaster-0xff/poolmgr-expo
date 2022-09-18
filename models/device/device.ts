@@ -347,9 +347,27 @@ namespace Devices {
     bomItemResources: DeviceTypeResource[];
   }
 
-  export interface DeviceType {
-    deviceResources: DeviceTypeResource[];
-    billOfMaterial: BillOfMaterialItem[];
+  export interface DeviceType  {
+  id: string;
+  name: string;
+  key: string;
+  description: string;
+  manufacturer: string;
+  modelNumber: string;
+  defaultDeviceConfiguration: Core.EntityHeader;
+  billOfMaterial: FSLite.BOMItem[];
+  resources: Core.EntityHeader[];
+  associatedEquipment: Core.EntityHeaderEx<FSLite.Equipment>[];
+  firmware: Core.EntityHeader;
+  firmwareRevision: Core.EntityHeader;
+}
+
+  export interface DeviceTypeView  {
+    name: Core.FormField;
+    key: Core.FormField;
+    description: Core.FormField
+    manufacturer: Core.FormField;
+    modelNumber: Core.FormField;
   }
 
   export interface DeviceTwinDetail {

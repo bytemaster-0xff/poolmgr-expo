@@ -1,16 +1,14 @@
 import { UserService } from './user.service';
 import {NativeStorageService } from '../core/utils'
-import {NuviotClientService } from './nuviot-client.service';
+import { NuviotClientService } from './nuviot-client.service';
 import { NetworkCallStatusService } from './network-call-status-service'; 
 import { ErrorReporterService } from './error-reporter.service';
 import { HttpClient } from '../core/utils';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DevicesService } from './devices.service';
 import { DeviceGroupService } from './device-group.service';
 
-class AppServices {
-    
+class AppServices {    
     constructor() {
         this.storage = new NativeStorageService();
         this.errorReporter = new ErrorReporterService();
@@ -40,5 +38,4 @@ class AppServices {
    // storage: NativeStor
 }
 
-let appServices = new AppServices();
-export default appServices;
+export default AppServices;

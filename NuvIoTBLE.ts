@@ -331,7 +331,7 @@ export class NuvIoTBLE {
     try {
       let buffer = this.string2Bin(value);
       await BleManager.write(id, serviceId, characteristicId, buffer, 255);
-      console.log("BLEManager__writeCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId);
+      console.log("BLEManager__writeCharacteristic: success, id = " + id + ' srcvid = ' + serviceId + ', charid=' + characteristicId + ", value=" + value);
       return true;
     }
     catch (e) {

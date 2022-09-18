@@ -1,10 +1,10 @@
-import { InvokeResult } from './../models/core/core';
 import { Observable } from 'rxjs';
 
 import { ReplaySubject } from 'rxjs';
 import { DeviceGroupService } from './device-group.service';
 import { NuviotClientService } from './nuviot-client.service';
-import {decode as atob, encode as btoa} from 'base-64'
+import { decode as atob, encode as btoa } from 'base-64'
+import { Device } from 'react-native-ble-plx';
 
 export class DevicesService {
   constructor(private deviceGroupService: DeviceGroupService,
@@ -80,21 +80,21 @@ export class DevicesService {
   }
 
   async createDevice(deviceRepoId: string): Promise<Devices.DeviceDetail> {
-      let response = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(`/api/device/${deviceRepoId}/factory`);
-      if(response.successful) {
-        let device = response.model;          
-        this.deviceSafeInit(device);       
-        return device;
-      }
-      else {
-        throw 'could not create device.';
-      }
+    let response = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(`/api/device/${deviceRepoId}/factory`);
+    if (response.successful) {
+      let device = response.model;
+      this.deviceSafeInit(device);
+      return device;
+    }
+    else {
+      throw 'could not create device.';
+    }
   }
 
   getDeviceTypes(): Promise<Devices.DeviceTypeSummary[]> {
     const promise = new Promise<Devices.DeviceTypeSummary[]>((resolve, reject) => {
       this.nuviotClient.getListResponse<Devices.DeviceTypeSummary>(`/api/devicetypes`)
-        .then(resp =>  { resolve(resp.model); })
+        .then(resp => { resolve(resp.model); })
     });
 
     return promise;
@@ -145,7 +145,7 @@ export class DevicesService {
         .then(deviceRepoResponse => this.setDeviceRepo(deviceRepoResponse.model));
 
       this.nuviotClient.getListResponse<Devices.DeviceSummary>(`/api/devices/${id}`)
-        .then(devicesListResponse =>  {
+        .then(devicesListResponse => {
           this.setDevices(devicesListResponse.model);
           this.setDevicesLoading(false);
         });
@@ -196,6 +196,12 @@ export class DevicesService {
     }
   }
 
+  public getDeviceType(deviceTypeId: string): Promise<Core.FormResult<Devices.DeviceType, Devices.DeviceTypeView>> {
+    const uri = `/api/devicetype/${deviceTypeId}`;
+    console.log(uri);
+    return this.nuviotClient.getFormResponse(uri);
+  }
+
   public updateRemoteDeviceProperties(repoId: string, deviceId: string): Promise<Core.InvokeResult> {
     const uri = `/api/device/remoteconfig/${repoId}/${deviceId}/all/send`;
     return this.nuviotClient.request<Core.InvokeResult>(uri);
@@ -211,9 +217,9 @@ export class DevicesService {
     return this.nuviotClient.request<Core.InvokeResult>(uri);
   }
 
-  public requestFirmwareUpdate(repoId: string, deviceId: string, firmwareId: string, revisionId: string) {
+  public requestFirmwareUpdate(repoId: string, deviceId: string, firmwareId: string, revisionId: string) : Promise<Core.InvokeResultEx<string>> {
     const uri = `/api/device/remoteconfig/${repoId}/${deviceId}/firmware/${firmwareId}/revision/${revisionId}`;
-    return this.nuviotClient.request<Core.InvokeResult>(uri);
+    return this.nuviotClient.request(uri);
   }
 
   public getFirmareHistory(repoId: string, deviceId: string): Promise<Devices.FirmwareDownloadRequest[]> {
@@ -280,20 +286,16 @@ export class DevicesService {
    * @param repoId Repository Id
    * @param deviceId Device Id
    */
-  public getDevice(repoId: string, deviceId: string): Promise<Devices.DeviceDetail> {
+  public async getDevice(repoId: string, deviceId: string): Promise<Devices.DeviceDetail> {
     this.setDeviceDetail(undefined);
     this._deviceLoading$.next(undefined);
-    const promise = new Promise<Devices.DeviceDetail>((resolve, reject) => {
-      const uri = `/api/device/${repoId}/${deviceId}/metadata`;
-      this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(uri)
-        .then(response => {
-          resolve(response.model);
-          this.setDeviceDetail(response.model);
-        })
-        .catch(err => reject(err));
-    });
+    const uri = `/api/device/${repoId}/${deviceId}/metadata`;
+    console.log(uri);
+    let result = await this.nuviotClient.getFormResponse<Devices.DeviceDetail, Devices.DeviceView>(uri);
 
-    return promise;
+    this.setDeviceDetail(result.model);
+
+    return result.model;
   }
 
 
@@ -340,7 +342,7 @@ export class DevicesService {
   }
 
   public async addDevice(device: Devices.DeviceDetail): Promise<Core.InvokeResult> {
-      return await this.nuviotClient.insert(`/api/device/${device.deviceRepository.id}`, device);        
+    return await this.nuviotClient.insert(`/api/device/${device.deviceRepository.id}`, device);
   }
 
   public addUserDevice(user: Devices.DeviceUser): Promise<Core.InvokeResult> {
@@ -371,10 +373,10 @@ export class DevicesService {
 
   public async updateDevice(device: Devices.DeviceDetail, clearDevice: boolean = true): Promise<Core.InvokeResult> {
     let response = await this.nuviotClient.update(`/api/device/${device.deviceRepository.id}`, device)
-    
+
     console.log(response);
 
-    if((response).successful) {
+    if ((response).successful) {
       if (clearDevice) {
         this.setDeviceDetail(undefined);
       } else {
@@ -426,11 +428,11 @@ export class DevicesService {
     return errs;
   }
 
-  createDeviceSensor() : Promise<Core.FormResult<Devices.Sensor, Devices.SensorView>> {
+  createDeviceSensor(): Promise<Core.FormResult<Devices.Sensor, Devices.SensorView>> {
     return this.nuviotClient.getFormResponse("/api/device/sensor/factory");
   }
 
-  setDeviceSensor(repoid: string, id: string, sensor: Devices.Sensor) : Promise<InvokeResult> {
+  setDeviceSensor(repoid: string, id: string, sensor: Devices.Sensor): Promise<Core.InvokeResult> {
     return this.nuviotClient.post(`/api/device/{repoid}/${id}/sensor`, sensor);
   }
 
@@ -494,11 +496,11 @@ export class DevicesService {
     return this._deviceLogLoading$.asObservable();
   }
 
-  getDeviceGroups(): Devices.DeviceGroupSummary[]  | undefined{
+  getDeviceGroups(): Devices.DeviceGroupSummary[] | undefined {
     return this._deviceGroups;
   }
 
-  getDevices(): Devices.DeviceSummary[] | undefined{
+  getDevices(): Devices.DeviceSummary[] | undefined {
     return this._devices;
   }
 
@@ -506,7 +508,7 @@ export class DevicesService {
     return this._deviceRepo;
   }
 
-  getDeviceRepos(): Devices.DeviceRepoSummary[] | undefined{
+  getDeviceRepos(): Devices.DeviceRepoSummary[] | undefined {
     return this._deviceRepos;
   }
 

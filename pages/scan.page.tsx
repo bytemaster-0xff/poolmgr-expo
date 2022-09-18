@@ -102,14 +102,14 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                         orgId: sysConfig.orgId,
                         repoId: sysConfig.repoId,
                         deviceUniqueId: sysConfig.id,
-                        id: devices.length
+                        id: devices!.length
                     }
 
                     if (sysConfig.id && sysConfig.id.length > 0)
                         device.provisioned = true;
 
-                    devices.push(device);
-                    setDevices([...devices]);
+                    devices!.push(device);
+                    setDevices([...devices!]);
                 }
 
                 await ble.disconnectById(peripheral.id);
@@ -160,6 +160,8 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         console.log(isScanning);
         if (isScanning)
             return;
+
+        setDevices([]);
 
         const permission = Platform.OS == "android" ? await requestLocationPermission() : true;
         if (permission) {
@@ -231,6 +233,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                 <ActivityIndicator size="large" color="#00ff00" animating={isScanning} />
             </View>
             :
+            devices.length > 0 ? 
             <View>
                 <FlatList
                     contentContainerStyle={{  alignItems: "stretch" }}
@@ -252,6 +255,13 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                         </Pressable>
                     }
                 />
+            </View>
+            : 
+            <View style={{alignContent:"center", width:"100%"}}>
+                <Text>0 Devices</Text>
+                <TouchableOpacity style={[styles.submitButton]} onPress={() => startScan()}>
+                    <Text style={[styles.submitButtonText, { color: 'white' }]}> Scan Now </Text>
+                </TouchableOpacity>
             </View>
     );
 }
