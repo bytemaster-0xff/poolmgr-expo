@@ -53,6 +53,23 @@ export const  DfuPage = ({ props, navigation, route } : IReactPageServices) => {
             setFirmware(undefined);
     }
 
+    function handler(value: any) {
+        if (value.characteristic == CHAR_UUID_STATE) {
+            console.log(value.value);
+            let rds = new RemoteDeviceState(value.value);
+            setRemoteDeviceState(rds);
+        }
+    }
+
+    const disconnectHandler = (id: string) => {
+        setConnectionState(DISCONNECTED);
+        setRemoteDeviceState(undefined);
+
+        ble.btEmitter.removeAllListeners('receive');
+        ble.btEmitter.removeAllListeners('disconnected');        
+        ble.unsubscribe();
+    }
+
     const updateFirmware = async () => {
         let result = await appServices.deviceServices.requestFirmwareUpdate(repoId, deviceId, firmware!.id, firmware!.defaultRevision.id);
         if(result.successful) {
@@ -62,6 +79,12 @@ export const  DfuPage = ({ props, navigation, route } : IReactPageServices) => {
             if(await ble.connectById(peripheralId)){
                 await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `dfu=${downloadId}`);
                 await ble.disconnectById(peripheralId);
+
+                setConnectionState(CONNECTED);
+                await ble.subscribe(ble);
+                ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
+                ble.btEmitter.addListener('receive', handler);
+                ble.btEmitter.addListener('disconnected', disconnectHandler);
             }
         }
         else {

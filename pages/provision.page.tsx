@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { IReactPageServices } from "../services/react-page-services";
-import { TouchableOpacity, ScrollView, View, Text, TextInput } from "react-native";
+import { TouchableOpacity, ScrollView, View, Text, TextInput, ActivityIndicator } from "react-native";
 import { RemoteDeviceState } from "../models/blemodels/state";
 import Icon from "react-native-vector-icons/Ionicons";
 import { ble,  CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import styles from '../styles';
 import { Picker } from '@react-native-picker/picker';
 
+import AppServices from "../services/app-services";
+
 import services from '../services/app-services';
 import { SysConfig } from "../models/blemodels/sysconfig";
 import { Device } from "react-native-ble-plx";
-import { DevicesService } from "../services/devices.service";
 
 export default function ProvisionPage({ navigation, route }: IReactPageServices) {
     const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
@@ -20,9 +21,10 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     const [deviceTypes, setDeviceTypes] = useState<Devices.DeviceTypeSummary[]>([])
     const [selectedRepo, setSelectedRepo] = useState<Devices.DeviceRepoSummary | undefined>();
     const [selectedDeviceType, setSelectedDeviceType] = useState<Devices.DeviceTypeSummary | undefined>();
-
+    const [appServices, setAppServices] = useState<AppServices>(new AppServices());
     const [deviceId, setDeviceId] = useState<string>();
     const [deviceName, setDeviceName] = useState<string>();
+    const [isBusy, setIsBusy] = useState<boolean>(false);
 
     const [sysConfig, setSysConfig] = useState<SysConfig>();
 
@@ -30,9 +32,9 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
     const loadReposAsync = async () => {
         console.log('loading repos.');
-        let repos = await services.deviceServices.loadDeviceRepositories();
+        let repos = await appServices.deviceServices.loadDeviceRepositories();
         setRepos(repos);
-        let deviceTypes = await services.deviceServices.getDeviceTypes();
+        let deviceTypes = await appServices.deviceServices.getDeviceTypes();
         setDeviceTypes(deviceTypes);
     }
 
@@ -63,7 +65,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     }
 
     const provisionDevice = async () => {
-        let newDevice = await services.deviceServices.createDevice(selectedRepo!.id)
+        let newDevice = await appServices.deviceServices.createDevice(selectedRepo!.id)
         console.log(deviceName, deviceId);
         newDevice.deviceType = { id: selectedDeviceType!.id, key: selectedDeviceType!.key, text: selectedDeviceType!.name };
         newDevice.deviceConfiguration = { id: selectedDeviceType!.defaultDeviceConfigId!, key: '', text: selectedDeviceType!.defaultDeviceConfigName! };
@@ -71,7 +73,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
         newDevice.name = deviceName!;
         newDevice.macAddress = peripheralId;
 
-        let result = await services.deviceServices.addDevice(newDevice);
+        let result = await appServices.deviceServices.addDevice(newDevice);
         console.log(result);
         if (result.successful) {
             if (await ble.connectById(peripheralId)) {
@@ -87,8 +89,13 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     }
 
     const init = async () => {
+        appServices.networkCallStatusService.emitter.addListener('busy', (e) => { setIsBusy(true) })
+        appServices.networkCallStatusService.emitter.addListener('idle', (e) => { setIsBusy(false) })
+
         await loadReposAsync();
+        setIsBusy(true);
         await loadSysConfigAsync();
+        setIsBusy(false);
     }
 
     const deviceTypeChanged = async (id: string) => {
@@ -96,7 +103,8 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     }
 
     const repoChanged = async (id: string) => {
-        setSelectedRepo(repos.find(rp => rp.id == id))
+        let repo = repos.find(rp => rp.id == id);
+        setSelectedRepo(repo);
     }
 
     useEffect(() => {
@@ -119,6 +127,12 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     });
 
     return (
+        isBusy ? 
+            <View style={styles.spinnerView}>                
+            <Text style={{fontSize: 25}}>Please Wait</Text>    
+                <ActivityIndicator size="large" color="#00ff00" animating={isBusy} />
+            </View>
+            :
         <View style={styles.scrollContainer}>
             <StatusBar style="auto" />
             <Text style={styles.label}>Repositories:</Text>
@@ -151,5 +165,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
                 }
             </View>
         </View>
+    
     );
 }

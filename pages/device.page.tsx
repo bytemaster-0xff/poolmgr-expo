@@ -5,7 +5,6 @@ import Icon from "react-native-vector-icons/Ionicons";
 
 import AppServices from "../services/app-services";
 
-
 import styles from '../styles';
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { IReactPageServices } from "../services/react-page-services";
@@ -148,27 +147,32 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
             <StatusBar style="auto" />
                 {connectionState == CONNECTED &&                 
                     <View>
-                    <Text >Connected</Text>
+                    <Text >Bluetooth Connection: Connected</Text>
                         {deviceDetail && 
                         <View>
                             <Text>Device Name: {deviceDetail.name}</Text>
-                            <Text>Device Repo: {deviceDetail.deviceRepository.text}</Text>
-                            <Text>Device Name: {deviceDetail.deviceType.text}</Text>
+                            <Text>Repo: {deviceDetail.deviceRepository.text}</Text>
+                            <Text>Device Type: {deviceDetail.deviceType.text}</Text>
                         </View>
                         }
 
                     {remoteDeviceState && 
-                        <View>
+                        <View style={{marginTop:20}}>
                             <Text>Current Device Status</Text>
+                            <Text>Firmware SKU: {remoteDeviceState.firmwareSku}</Text>
+                            <Text>FirmwareRev: {remoteDeviceState.firmwareRevision}</Text>
                             <Text>Commissioned: {remoteDeviceState.commissioned ? 'Yes' : 'No'}</Text>
                             <Text>Cellular Connected: {remoteDeviceState.cellularConnected ? 'Yes' : 'No'}</Text>
                             <Text>WiFi Connected: {remoteDeviceState.wifiStatus}</Text>
+                            <Text>VIN: {remoteDeviceState.inputVoltage}V</Text>
                         </View>
                     
                     }
 
                     {sensorValues && 
-                        <View>
+                        <View style={{marginTop:20}}>
+                            <Text>Live Sensor Data</Text>
+
                             <Text>ADC Sensors</Text>
                                 {sensorValues.adcValues.map((sensorValue, index)=> sensorValue && <Text key={index}>{index + 1}. {sensorValue}</Text>)}
                             <Text>IO Sensors</Text>
