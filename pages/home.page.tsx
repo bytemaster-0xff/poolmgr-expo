@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Text, PermissionsAndroid, Platform, View, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Button, Pressable, TurboModuleRegistry } from 'react-native';
 import Tabbar from "@mindinventory/react-native-tab-bar-interaction";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from '../styles';
 import { IReactPageServices } from "../services/react-page-services";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -61,6 +62,16 @@ export default function HomePage({ navigation }: IReactPageServices) {
         navigation.navigate(pageName);
     }
 
+    const logOut = async () => {
+        await AsyncStorage.setItem("isLoggedIn", "false");
+
+        await AsyncStorage.removeItem("jwt");
+        await AsyncStorage.removeItem("refreshtoken");
+        await AsyncStorage.removeItem("refreshtokenExpires");
+        await AsyncStorage.removeItem("jwtExpires");
+        navigation.replace('authPage');
+    }
+
     const reposPage = () => {
         return <View>
             <Text>repos</Text>
@@ -78,8 +89,13 @@ export default function HomePage({ navigation }: IReactPageServices) {
     const profilePage = () => {
         return <View>
                   <TouchableOpacity style={[styles.navRow]} onPress={() => showPage('changeOrgsPage')}>
-                        <Text style={[styles.navRowText]}> Switch Organizations </Text>
+                        <Text style={[styles.navRowText]}> Switch Organizations </Text>                        
                     </TouchableOpacity>
+
+                    <TouchableOpacity style={[styles.navRow]} onPress={() => logOut()}>
+                        <Text style={[styles.navRowText]}> Log Out </Text>                        
+                    </TouchableOpacity>
+
                 </View>
     }
 
