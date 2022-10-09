@@ -258,10 +258,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
             </View>
             : 
             <View style={{alignContent:"center", width:"100%"}}>
-                <Text>0 Devices</Text>
-                <TouchableOpacity style={[styles.submitButton]} onPress={() => startScan()}>
-                    <Text style={[styles.submitButtonText, { color: 'white' }]}> Scan Now </Text>
-                </TouchableOpacity>
+                <Text style={{ fontSize: 25 }}>Scan for Devices</Text>
             </View>
     );
 }

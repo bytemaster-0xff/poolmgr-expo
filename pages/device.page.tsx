@@ -41,6 +41,8 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
             console.log(value.value);
             let values = new IOValues(value.value);
             setSensorValues(values);
+            console.log('hi');
+            console.log(values.ioValues);
         }                
     }
 
@@ -85,6 +87,10 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
             
             await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
             await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
+
+            ble.btEmitter.removeAllListeners('receive');
+            ble.btEmitter.removeAllListeners('disconnected');
+
             ble.btEmitter.addListener('receive', charHandler);
             ble.btEmitter.addListener('disconnected', disconnectHandler);
         }
@@ -172,12 +178,12 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
                     {sensorValues && 
                         <View style={{marginTop:20}}>
                             <Text>Live Sensor Data</Text>
-
                             <Text>ADC Sensors</Text>
-                                {sensorValues.adcValues.map((sensorValue, index)=> sensorValue && <Text key={index}>{index + 1}. {sensorValue}</Text>)}
-                            <Text>IO Sensors</Text>
-                                {sensorValues.ioValues.map((sensorValue, index)=> sensorValue && <Text key={index}>{index + 1}. {sensorValue}</Text>)}
-                        </View>
+                                {sensorValues.adcValues.map((sensorValue, index)=> (sensorValue != undefined && <Text key={index}>{index + 1}. {sensorValue}</Text>))}
+                            <Text style={{marginTop:20}}>IO Sensors</Text>                                
+                                {sensorValues.ioValues.map((ioValue, index)=> (ioValue != undefined && <Text key={index}>{index + 1}. {ioValue == 0 ? 'off' : 'on'}</Text>))}
+
+                            </View>
 
                     }
                     </View> 

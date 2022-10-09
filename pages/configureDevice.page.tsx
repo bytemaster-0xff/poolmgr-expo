@@ -147,6 +147,7 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
                             {remoteDeviceState.cellularConnected && <Text>Cellular IP: {remoteDeviceState.cellularIPAddress}</Text>}
                             <Text>WiFi Connected: {remoteDeviceState.wifiStatus}</Text>
                             {remoteDeviceState.wifiStatus == 'Connected' && <Text>WiFi IP: {remoteDeviceState.wifiIPAddress}</Text>}
+                            <Text>Cloud Connected: {remoteDeviceState.isCloudConnected ? 'Yes' : 'No'}</Text>
                             <Text>Firmware Rev: {remoteDeviceState.firmwareRevision}</Text>
                             <Text>Hardware Rev: {remoteDeviceState.hardwareRevision}</Text>
                             <Text>Supply Voltage: {remoteDeviceState.inputVoltage}</Text>

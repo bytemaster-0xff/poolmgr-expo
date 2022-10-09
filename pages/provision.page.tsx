@@ -33,8 +33,10 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     const loadReposAsync = async () => {
         console.log('loading repos.');
         let repos = await appServices.deviceServices.loadDeviceRepositories();
+        repos.unshift({id:"-1", key:'select',name:'-select-',isPublic: false, description:'', repositoryType:''});
         setRepos(repos);
         let deviceTypes = await appServices.deviceServices.getDeviceTypes();
+        deviceTypes.unshift({id:"-1", key:'select',name:'-select-', description:''});
         setDeviceTypes(deviceTypes);
     }
 
@@ -65,6 +67,25 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
     }
 
     const provisionDevice = async () => {
+        if(!selectedRepo || selectedRepo.id === "-1") {
+            alert('Please select a device type.');
+            return;
+        }
+
+        if(!selectedDeviceType || selectedDeviceType.id === "-1") {
+            alert('Please select a device type.');
+            return;
+        }
+
+        if(!deviceName) {
+            alert('Device name is required.');
+        }
+
+        if(!deviceId) {
+            alert('Device id is required.');
+        }
+
+        setIsBusy(true);
         let newDevice = await appServices.deviceServices.createDevice(selectedRepo!.id)
         console.log(deviceName, deviceId);
         newDevice.deviceType = { id: selectedDeviceType!.id, key: selectedDeviceType!.key, text: selectedDeviceType!.name };
@@ -76,6 +97,7 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
         let result = await appServices.deviceServices.addDevice(newDevice);
         console.log(result);
         if (result.successful) {
+
             if (await ble.connectById(peripheralId)) {
                 await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'deviceid=' + deviceId);
                 await ble.writeCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, 'orgid=' + newDevice.ownerOrganization.id);
@@ -85,6 +107,13 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
                 await ble.disconnectById(peripheralId);
             }
+            setIsBusy(false);
+            alert('Success provisioning device.');
+            navigation.goBack();
+        }
+        else {
+            setIsBusy(false);
+            alert(`Could not provision device: ${result.errors[0].message}`);
         }
     }
 
@@ -147,8 +176,6 @@ export default function ProvisionPage({ navigation, route }: IReactPageServices)
 
             <TextInput style={styles.inputStyle} placeholder="device name" value={deviceName} onChangeText={e => setDeviceName(e)} />
             <TextInput style={styles.inputStyle} placeholder="device id" value={deviceId} onChangeText={e => setDeviceId(e)} />
-
-            <TouchableOpacity style={styles.submitButton} onPress={() => factoryReset()}><Text style={styles.submitButtonText}> FACTORY RESET </Text></TouchableOpacity>
             <View>
                 {remoteDeviceState &&
                     <View>
