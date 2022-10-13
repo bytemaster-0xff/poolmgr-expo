@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { Text, PermissionsAndroid, Platform, View, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Button, Pressable, BackHandler, Alert, } from 'react-native';
+import { Text, PermissionsAndroid, Platform, View,  FlatList, ActivityIndicator, Pressable, BackHandler, Alert, } from 'react-native';
 import { Peripheral } from 'react-native-ble-manager'
 import { ble, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 
@@ -18,7 +18,6 @@ export default function ScanPage({ navigation }: IReactPageServices) {
     const [isScanning, setIsScanning] = useState<boolean>(false);
     const [ busyMessage, setIsBusyMessage] = useState<String>('Busy');
     const [initialCall, setInitialCall] = useState<boolean>(true);
-
 
     const requestLocationPermission = async () => {
         try {
@@ -172,7 +171,6 @@ export default function ScanPage({ navigation }: IReactPageServices) {
         }
     }
 
-
     const stopScanning = () => {
         if (isScanning) {
             ble.btEmitter.removeAllListeners('connected');
@@ -257,8 +255,9 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                 />
             </View>
             : 
-            <View style={{alignContent:"center", width:"100%"}}>
+            <View style={styles.centeredContent}>
                 <Text style={{ fontSize: 25 }}>Scan for Devices</Text>
+                <Icon.Button style={{ fontSize: 64 }} backgroundColor="transparent" underlayColor="transparent" color="navy" onPress={() => startScan()} name='refresh-outline' />
             </View>
     );
 }
