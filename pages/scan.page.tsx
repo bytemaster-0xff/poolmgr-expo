@@ -228,7 +228,7 @@ export default function ScanPage({ navigation }: IReactPageServices) {
             isScanning ?
             <View style={styles.spinnerView}>
                 <Text style={{ fontSize: 25 }}>{busyMessage}</Text>
-                <ActivityIndicator size="large" color="#00ff00" animating={isScanning} />
+                <ActivityIndicator  size="large" color="#00ff00" animating={isScanning} />
             </View>
             :
             devices.length > 0 ? 
@@ -247,8 +247,8 @@ export default function ScanPage({ navigation }: IReactPageServices) {
                                     <Text style={[{ color: 'black', flex: 3 }]}>{item.deviceType}</Text>
                                 </View>
                                 <Text style={[{ color: 'black', flex: 3 }]}>{item.peripheralId}</Text>
-                                {item.provisioned && <Icon color="green" name='hardware-chip-outline' size={24} />}
-                                {!item.provisioned && <Icon color="green" name='add-circle-outline' size={24} />}
+                                {item.provisioned && <Icon style={{fontSize:24, color:'green' }}  name='hardware-chip-outline'  />}
+                                {!item.provisioned && <Icon style={{fontSize:24, color:'green' }}  name='add-circle-outline'  />}
                             </View>
                         </Pressable>
                     }

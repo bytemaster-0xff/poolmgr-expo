@@ -38,7 +38,9 @@
     "react-native-web": "0.17.7",
     "rxjs": "^7.5.5",
     "base-64": "1.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "webpack-dev-server": "~3.11.0",
+    "@expo/webpack-config": "~0.16.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
