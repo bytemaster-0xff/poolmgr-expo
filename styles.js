@@ -1,8 +1,16 @@
 import React, { Component, PropTypes } from 'react';
 import { StyleSheet } from 'react-native';
 
+const pageBackground = 'white';
+const pageForeground = '#2c2c2c'
+const borderColor = 'darkgray';
+
+const accentColor = '#d19b3d';
+const primaryColor = 'rgb(25,118,210)';
+
 const styles = StyleSheet.create({
-    container: {
+
+  container: {
       flex: 1,
       padding:20,
       alignItems: 'flex-start',
@@ -22,10 +30,10 @@ const styles = StyleSheet.create({
     },
 
     inputStyle: {
-      backgroundColor: 'white',
+      backgroundColor: pageBackground,
       width: 300,
       height:40,
-      borderColor:"darkgray",
+      borderColor: borderColor,
       borderWidth:1,
       padding:4,
       borderRadius:8,
@@ -34,9 +42,14 @@ const styles = StyleSheet.create({
     },
 
     label: {
-      color: 'black',
+      color: pageForeground,
       fontSize:18,
     },
+
+    spinner: {
+      size:"large",
+      color:accentColor
+    },  
 
     spinnerView: {
       position: "absolute",
@@ -47,7 +60,7 @@ const styles = StyleSheet.create({
       bottom: 0,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: "#F5FCFF88",
+      backgroundColor: pageBackground,
     },
 
     centeredContent: {
@@ -63,7 +76,7 @@ const styles = StyleSheet.create({
     },
     
     submitButton: {
-      backgroundColor: "green",
+      backgroundColor: primaryColor,
       padding: 11,
       borderRadius:10,
       margin: 0,
@@ -76,12 +89,12 @@ const styles = StyleSheet.create({
       backgroundColor: "white",
       height:42,
       width: 300,
-      borderBottomColor: "gray",
+      borderBottomColor: borderColor,
       borderBottomWidth: 1
     },
 
     navRowText: {
-      color: "black"
+      color: pageForeground
     },
 
     submitButtonText: {
