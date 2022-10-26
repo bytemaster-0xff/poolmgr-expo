@@ -3,11 +3,13 @@ import { Platform, NativeEventEmitter, NativeModules } from "react-native";
 import {NuvIoTEventEmitter} from './utils/NuvIoTEventEmitter'
 
 import { Peripheral } from 'react-native-ble-manager';
+
+const simulateBLE = true;
+
 const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+const bleManagerEmitter = null; //(simulateBLE) ? null : new NativeEventEmitter(BleManagerModule);
 
 import BleManager, { requestMTU } from './services/BleManager'
-import { delay } from "rxjs";
 var Buffer = require('buffer/').Buffer
 
 export const SVC_UUID_NUVIOT = "d804b639-6ce7-4e80-9f8a-ce0f699085eb"
@@ -98,13 +100,20 @@ export class NuvIoTBLE {
   startupTimeStamp: Date = new Date();
 
   peripherals: Peripheral[] = [];
-  public emitter: NativeEventEmitter;
 
-  public btEmitter: NuvIoTEventEmitter;
+  public emitter: NativeEventEmitter | undefined;
+  public btEmitter: NuvIoTEventEmitter | undefined;
 
   constructor() {
-    this.emitter = new NativeEventEmitter(BleManagerModule);
-    this.btEmitter = new NuvIoTEventEmitter();
+    if(!this.simulatedBLE()) {
+      this.emitter = new NativeEventEmitter(BleManagerModule);    
+      this.btEmitter = new NuvIoTEventEmitter();
+    }
+    else 
+    {
+      //this.emitter = new NativeEventEmitter();    
+      //this.btEmitter = new NuvIoTEventEmitter();
+    }
 
     console.log("BLEManager__Constructor");
     console.log("OS " + Platform.OS);
@@ -120,46 +129,64 @@ export class NuvIoTBLE {
     }
   }
 
+  addListener(name: string, callback: (event: any) => void) {
+    if(!this.simulatedBLE()) {
+      this.btEmitter.addListener(name, callback);
+    }
+  }
+
+  removeAllListeners(name: string) {
+    if(!this.simulatedBLE()) {
+      this.btEmitter?.removeAllListeners(name);
+    }
+  }
+
   subscribe(ble: NuvIoTBLE) {
     if (ble == null) {
       throw 'BLE is null, requires instance of BLE manager for subscription.'
     }
 
-    bleManagerEmitter.removeAllListeners('BleManagerDiscoverPeripheral');
-    bleManagerEmitter.removeAllListeners('BleManagerStopScan');
-    bleManagerEmitter.removeAllListeners('BleManagerDisconnectPeripheral');
-    bleManagerEmitter.removeAllListeners('BleManagerDidUpdateValueForCharacteristic');
+    if(!this.simulatedBLE()){
+      bleManagerEmitter.removeAllListeners('BleManagerDiscoverPeripheral');
+      bleManagerEmitter.removeAllListeners('BleManagerStopScan');
+      bleManagerEmitter.removeAllListeners('BleManagerDisconnectPeripheral');
+      bleManagerEmitter.removeAllListeners('BleManagerDidUpdateValueForCharacteristic');
 
-    bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral: Peripheral) => this.handleDiscoverPeripheral(ble, peripheral));
-    bleManagerEmitter.addListener('BleManagerStopScan', () => this.handleStopScan(ble));
-    bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', (peripheral: Peripheral) => this.handleDisconnectedPeripheral(ble, peripheral));
-    bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', ({ value, peripheral, characteristic, service }) => {
+      bleManagerEmitter.addListener('BleManagerDiscoverPeripheral', (peripheral: Peripheral) => this.handleDiscoverPeripheral(ble, peripheral));
+      bleManagerEmitter.addListener('BleManagerStopScan', () => this.handleStopScan(ble));
+      bleManagerEmitter.addListener('BleManagerDisconnectPeripheral', (peripheral: Peripheral) => this.handleDisconnectedPeripheral(ble, peripheral));
+      bleManagerEmitter.addListener('BleManagerDidUpdateValueForCharacteristic', ({ value, peripheral, characteristic, service }) => {
+    
       // Convert bytes array to string
-      const buffer = Buffer.from(value);
-      const decodedValue = buffer.toString();
-      ble.btEmitter.emit('receive', { characteristic: characteristic, value: decodedValue });
-    });
+        const buffer = Buffer.from(value);
+        const decodedValue = buffer.toString();
+        ble.btEmitter.emit('receive', { characteristic: characteristic, value: decodedValue });
+      });
+    }
 
     console.log('BLEManager__subscribe - subscribed to native events: DiscoverPeripheral, StopScan, DisconnectPeripheral, DidUpdateValueForCharacteristic');
   }
 
   unsubscribe() {
-    bleManagerEmitter.removeAllListeners('BleManagerDiscoverPeripheral');
-    bleManagerEmitter.removeAllListeners('BleManagerStopScan');
-    bleManagerEmitter.removeAllListeners('BleManagerDisconnectPeripheral');
-    bleManagerEmitter.removeAllListeners('BleManagerDidUpdateValueForCharacteristic');
+    if(!this.simulatedBLE()){
+      bleManagerEmitter.removeAllListeners('BleManagerDiscoverPeripheral');
+      bleManagerEmitter.removeAllListeners('BleManagerStopScan');
+      bleManagerEmitter.removeAllListeners('BleManagerDisconnectPeripheral');
+      bleManagerEmitter.removeAllListeners('BleManagerDidUpdateValueForCharacteristic');
+    }
     console.log('BLEManager__unsubscribe - subscribed to native events: DiscoverPeripheral, StopScan, DisconnectPeripheral, DidUpdateValueForCharacteristic');
   }
 
   setIsScanning(value: boolean) {
     this.isScanning = value;
     console.log('BLEManager__setIsScanning: ' + value);
-    this.btEmitter.emit('scanning', value);
+    if(!this.simulatedBLE()){
+      this.btEmitter.emit('scanning', value);
+    }
   }
 
   simulatedBLE(): boolean {
-    return Platform.OS === 'web'
-    // return true;
+    return Platform.OS === 'web' || simulateBLE;
   }
 
   async listenForNotifications(deviceId: string, serviceId: string, characteristicId: string) : Promise<boolean> {
@@ -204,8 +231,7 @@ export class NuvIoTBLE {
         }
 
         ble.peripherals.push(peripheral);
-        console.log('added - ' + peripheral.name + ' ' + peripheral.id);
-        ble.btEmitter.emit('connected', peripheral);
+        console.log('NuvIoTBLE__startScan; Add Temp Device: ' + peripheral.name + ' ' + peripheral.id);
       }
         , 1000)
 

@@ -98,20 +98,25 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     const disconnectHandler = (id: string) => {
         setConnectionState(DISCONNECTED);
 
-        ble.btEmitter.removeAllListeners('receive');
-        ble.btEmitter.removeAllListeners('disconnected');
+        ble.removeAllListeners('receive');
+        ble.removeAllListeners('disconnected');
         ble.unsubscribe();
     }
 
     const loadDevice = async () => {
+        if(ble.simulatedBLE())
+        {
+            setConnectionState(CONNECTED);
+            return;
+        }
         setConnectionState(CONNECTING);
 
         if (await ble.connectById(peripheralId)) {
             setConnectionState(CONNECTED);
             await ble.subscribe(ble);
             ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
-            ble.btEmitter.addListener('receive', handler);
-            ble.btEmitter.addListener('disconnected', disconnectHandler);
+            ble.addListener('receive', handler);
+            ble.addListener('disconnected', disconnectHandler);
         }
     }
 
@@ -164,8 +169,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
     const restartDevice = async () => {
         if (connectionState == CONNECTED) {
             ble.unsubscribe();
-            ble.btEmitter.removeAllListeners('receive');
-            ble.btEmitter.removeAllListeners('disconnected');
+            ble.removeAllListeners('receive');
+            ble.removeAllListeners('disconnected');
             await ble.writeNoResponseCharacteristic(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_SYS_CONFIG, `reboot=1`);
             await ble.disconnectById(peripheralId);
             setConnectionState(DISCONNECTED);
@@ -195,8 +200,8 @@ export const SensorsPage = ({ props, navigation, route }: IReactPageServices) =>
             console.log('Leaving configure device page.');
             if (connectionState == CONNECTED) {
                 ble.unsubscribe();
-                ble.btEmitter.removeAllListeners('receive');
-                ble.btEmitter.removeAllListeners('disconnected');
+                ble.removeAllListeners('receive');
+                ble.removeAllListeners('disconnected');
                 await ble.disconnectById(peripheralId);
             }
         });

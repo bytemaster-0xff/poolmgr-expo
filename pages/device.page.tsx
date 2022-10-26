@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { TouchableOpacity, ScrollView, View, Text, ActivityIndicator, TextInput } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 
+import { SimulatedData } from "../services/simulatedData";
 import AppServices from "../services/app-services";
 
 import styles from '../styles';
@@ -17,6 +18,8 @@ const CONNECTING = 1;
 const CONNECTED = 2;
 const DISCONNECTED = 3;
 const DISCONNECTED_PAGE_SUSPENDED = 4;
+
+let simData = new SimulatedData();
 
 export const DevicePage = ({ props, navigation, route } : IReactPageServices) => {    
     const [initialCall, setInitialCall] = useState<boolean>(true);
@@ -51,15 +54,15 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
         setRemoteDeviceState(undefined);
         setSensorValues(undefined);
 
-        ble.btEmitter.removeAllListeners('receive');
-        ble.btEmitter.removeAllListeners('disconnected');
+        ble.removeAllListeners('receive');
+        ble.removeAllListeners('disconnected');
         ble.unsubscribe();        
     }
 
     const showConfigurePage = async() => {
         if(connectionState == CONNECTED) {
-            ble.btEmitter.removeAllListeners('receive');
-            ble.btEmitter.removeAllListeners('disconnected');
+            ble.removeAllListeners('receive');
+            ble.removeAllListeners('disconnected');
             ble.unsubscribe();
             await ble.disconnectById(peripheralId);
             setConnectionState(DISCONNECTED_PAGE_SUSPENDED);            
@@ -69,7 +72,15 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
     }
 
     const loadDevice = async () => {
-        console.log('loading sys config.');
+        if(ble.simulatedBLE()) {
+            setConnectionState(CONNECTED);
+            setIsBusy(false);
+            setSysConfig(simData.getSysConfig());
+            setRemoteDeviceState(simData.getRemoteDeviceState());
+            setSensorValues(simData.getSensorValues());
+            return;
+        }
+        
         setConnectionState(CONNECTING);
         
         if (await ble.connectById(peripheralId, CHAR_UUID_SYS_CONFIG)) {
@@ -88,14 +99,13 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
             await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_STATE);
             await ble.listenForNotifications(peripheralId, SVC_UUID_NUVIOT, CHAR_UUID_IO_VALUE);
 
-            ble.btEmitter.removeAllListeners('receive');
-            ble.btEmitter.removeAllListeners('disconnected');
+            ble.removeAllListeners('receive');
+            ble.removeAllListeners('disconnected');
 
-            ble.btEmitter.addListener('receive', charHandler);
-            ble.btEmitter.addListener('disconnected', disconnectHandler);
+            ble.addListener('receive', charHandler);
+            ble.addListener('disconnected', disconnectHandler);
         }
     }
-
 
     useEffect(() => {
         if (initialCall) {
@@ -118,8 +128,8 @@ export const DevicePage = ({ props, navigation, route } : IReactPageServices) =>
             }
             else if(connectionState == CONNECTED) {
                 console.log('DevicePage_BeforeRemove.');
-                ble.btEmitter.removeAllListeners('receive');
-                ble.btEmitter.removeAllListeners('disconnected');
+                ble.removeAllListeners('receive');
+                ble.removeAllListeners('disconnected');
                 ble.unsubscribe();
                 await ble.disconnectById(peripheralId);
             }
