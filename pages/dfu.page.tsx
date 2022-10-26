@@ -115,7 +115,7 @@ export const  DfuPage = ({ props, navigation, route } : IReactPageServices) => {
             <View>
                 <Text>Firmware: {firmware.name}</Text>
                 <Text>Firmware SKU: {firmware.firmwareSku}</Text>
-                <Text>Firmware Revision: {firmware.defaultRevision.text}</Text>
+                <Text>Available Firmware Revision: {firmware.defaultRevision.text}</Text>
 
                 {remoteDeviceState && 
                     <View>

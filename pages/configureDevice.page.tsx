@@ -8,6 +8,8 @@ import styles from '../styles';
 import { ble, CHAR_UUID_IOCONFIG, CHAR_UUID_IO_VALUE, CHAR_UUID_RELAY, CHAR_UUID_STATE, CHAR_UUID_SYS_CONFIG, SVC_UUID_NUVIOT } from '../NuvIoTBLE'
 import { IReactPageServices } from "../services/react-page-services";
 import { RemoteDeviceState } from "../models/blemodels/state";
+import { BLEPageServices } from '../services/ble-page-services';
+
 
 const IDLE = 0;
 const CONNECTING = 1;
@@ -16,9 +18,14 @@ const DISCONNECTED = 3;
 const DISCONNECTED_PAGE_SUSPENDED = 4;
 
 export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServices) => {
+
     const [initialCall, setInitialCall] = useState<boolean>(true);
     const [remoteDeviceState, setRemoteDeviceState] = useState<RemoteDeviceState | undefined>(undefined);
-    const [appServices, setAppServices] = useState<AppServices>(new AppServices());const peripheralId = route.params.id;
+    const [appServices, setAppServices] = useState<AppServices>(new AppServices());
+
+    const [blePageServices, steBlePageServices] = useState<BLEPageServices>();
+
+    const peripheralId = route.params.id;
     const deviceId = route.params.deviceId;
     const repoId = route.params.repoId;
 
@@ -58,6 +65,7 @@ export const ConfigureDevicePage = ({ props, navigation, route }: IReactPageServ
     useEffect(() => {
         if (initialCall) {
             setInitialCall(false);
+            steBlePageServices(new BLEPageServices());
             loadDevice();
         }
 

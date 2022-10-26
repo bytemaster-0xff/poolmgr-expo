@@ -7,6 +7,7 @@ const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 import BleManager, { requestMTU } from './services/BleManager'
+import { delay } from "rxjs";
 var Buffer = require('buffer/').Buffer
 
 export const SVC_UUID_NUVIOT = "d804b639-6ce7-4e80-9f8a-ce0f699085eb"
@@ -369,10 +370,6 @@ export class NuvIoTBLE {
         let result = await BleManager.isPeripheralConnected(id)
         if (result) {
           console.log('BLEManager__connectById: already connected, id=' + id);
-          if(Platform.OS == "android") {
-            await BleManager.requestMTU(id, 512);
-          }
-
           return true;
         }
         else {
@@ -436,6 +433,19 @@ export class NuvIoTBLE {
       else {
         try {
           await BleManager.disconnect(id, true);
+          console.log("BLEManager__disconnectById;");
+     
+          let start = new Date();
+          let delta = 0;
+          while(await BleManager.isPeripheralConnected(id) && delta < 5000){
+            delta = (Date.now() - +(start));
+          }
+
+          if(await BleManager.isPeripheralConnected(id)) {
+            console.log("BLEManager__disconnectById: false, id = " + id + "; timeout waiting for disconnect.");
+            return false;
+          }
+
           console.log("BLEManager__disconnectById: success, id = " + id);
           return true;
         }

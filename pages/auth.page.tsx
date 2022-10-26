@@ -71,11 +71,11 @@ export const AuthPage = ({ props, navigation, route }: IReactPageServices) => {
                 <TouchableOpacity style={styles.submitButton} onPress={() => login(email, password)}><Text style={styles.submitButtonText}> Submit </Text></TouchableOpacity>
             </View>}
             {isBusy &&
-                        <View style={styles.spinnerView}>                
-                        <Text style={{fontSize: 25}}>Please Wait</Text>    
-                            <ActivityIndicator size="large" color="#00ff00" animating={isBusy} />
-                        </View>
-            }
+                <View style={styles.spinnerView}>                
+                <Text style={{fontSize: 25}}>Please Wait</Text>    
+                    <ActivityIndicator size="large" color="#00ff00" animating={isBusy} />
+                </View>
+    }
         </View>
     );
 }

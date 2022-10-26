@@ -31,24 +31,34 @@ export default function ScanPage({ navigation }: IReactPageServices) {
             },
             );
 
-            const btGranted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN, {
-                title: 'Location permission for bluetooth scanning',
-                message: 'wahtever',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-            },
-            );
+            let btGranted = PermissionsAndroid.RESULTS.GRANTED;
+            let btcGranted = PermissionsAndroid.RESULTS.GRANTE;
 
-            const btcGranted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, {
-                title: 'Location permission for bluetooth scanning',
-                message: 'wahtever',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-            });
+
+            let OsVer =  Platform.Version;//.constants["Release"] as number;
+
+            console.log('react native version' + OsVer)
+
+            // android revision 30 is android release 11, 31 is 12.
+            if(OsVer > 30){
+                btGranted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN, {
+                    title: 'Location permission for bluetooth scanning',
+                    message: 'wahtever',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                });
+
+                btcGranted = await PermissionsAndroid.request(
+                    PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT, {
+                    title: 'Location permission for bluetooth scanning',
+                    message: 'wahtever',
+                    buttonNeutral: 'Ask Me Later',
+                    buttonNegative: 'Cancel',
+                    buttonPositive: 'OK',
+                });
+            }
 
             console.log('Permissions Granted', granted, btGranted, btcGranted);
 
