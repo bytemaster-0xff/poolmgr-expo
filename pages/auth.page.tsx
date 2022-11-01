@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
 import styles from '../styles';
-import { StyleSheet, Text, PermissionsAndroid,ActivityIndicator, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, PermissionsAndroid,ActivityIndicator, View, TextInput, TouchableOpacity, Image } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IReactPageServices } from "../services/react-page-services";
 
@@ -61,6 +61,7 @@ export const AuthPage = ({ props, navigation, route }: IReactPageServices) => {
     return (
         <View style={styles.container}>
             {!isBusy && <View style={styles.formGroup}>
+                <Image source={require('../assets/nuviot-blue.png')} style={{width:300,height:80}} />
                 <Text style={styles.label} >Email Address:</Text>
 
                 <TextInput style={styles.inputStyle} placeholder="enter email" onChangeText={e => setEmail(e)} />

@@ -4,10 +4,10 @@ import {NuvIoTEventEmitter} from './utils/NuvIoTEventEmitter'
 
 import { Peripheral } from 'react-native-ble-manager';
 
-const simulateBLE = true;
+const simulateBLE = false;
 
 const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = null; //(simulateBLE) ? null : new NativeEventEmitter(BleManagerModule);
+const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 import BleManager, { requestMTU } from './services/BleManager'
 var Buffer = require('buffer/').Buffer
